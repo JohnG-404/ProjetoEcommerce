@@ -154,9 +154,42 @@ app.MapGet("/health", () =>
 Console.WriteLine("🎉 Aplicação iniciada com sucesso!");
 Console.WriteLine($"📊 Ambiente: {app.Environment.EnvironmentName}");
 Console.WriteLine($"🔗 Swagger: {app.Urls.FirstOrDefault()}/swagger");
+// Adicione isto antes de app.Run();
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (Exception ex)
+    {
+        var logger = app.Services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "❌ ERRO DETALHADO: {Message}", ex.Message);
+
+        // Log mais detalhado para erros de cast
+        if (ex.Message.Contains("Unable to cast object of type 'System.DBNull'"))
+        {
+            logger.LogError("🔍 ERRO DE CAST - Verifique campos NULL no banco de dados");
+        }
+
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+
+        var errorResponse = new
+        {
+            Message = "Ocorreu um erro interno no servidor",
+            Detail = app.Environment.IsDevelopment() ? ex.Message : "Contate o administrador",
+            StackTrace = app.Environment.IsDevelopment() ? ex.StackTrace : null,
+            Timestamp = DateTime.Now
+        };
+
+        await context.Response.WriteAsJsonAsync(errorResponse);
+    }
+});
 
 app.Run();
 
+// 🔥 CLASSE PARA INICIALIZAÇÃO DO BANCO DE DADOS
 // 🔥 CLASSE PARA INICIALIZAÇÃO DO BANCO DE DADOS
 public static class DbInitializer
 {
@@ -170,10 +203,10 @@ public static class DbInitializer
             // 1. Criar categorias
             var categorias = new[]
             {
-                new Categoria { Nome = "Eletrônicos", Descricao = "Produtos eletrônicos em geral",  },
-                new Categoria { Nome = "Celulares", Descricao = "Smartphones e telefones móveis",  },
-                new Categoria { Nome = "Informática", Descricao = "Computadores e acessórios",  },
-                new Categoria { Nome = "Livros Digitais", Descricao = "E-books e cursos online", }
+                new Categoria { Nome = "Eletrônicos", Descricao = "Produtos eletrônicos em geral", Ativo = true },
+                new Categoria { Nome = "Celulares", Descricao = "Smartphones e telefones móveis", Ativo = true },
+                new Categoria { Nome = "Informática", Descricao = "Computadores e acessórios", Ativo = true },
+                new Categoria { Nome = "Livros Digitais", Descricao = "E-books e cursos online", Ativo = true }
             };
             await context.Categorias.AddRangeAsync(categorias);
             await context.SaveChangesAsync();
@@ -194,7 +227,7 @@ public static class DbInitializer
             await context.Lojas.AddRangeAsync(lojas);
             await context.SaveChangesAsync();
 
-            // 3. Criar caixas para as lojas (USANDO CONSTRUTOR CORRETO)
+            // 3. Criar caixas para as lojas
             var caixas = new[]
             {
                 new Caixa
@@ -236,43 +269,45 @@ public static class DbInitializer
             await context.Usuarios.AddRangeAsync(usuarios);
             await context.SaveChangesAsync();
 
-            // 5. Criar produtos (demonstrando ENCAPSULAMENTO)
-            var produtos = new[]
+            // 5. Criar produtos físicos
+            var produtosFisicos = new[]
             {
-                new Produto("Smartphone Samsung Galaxy S21", "Smartphone Android 128GB, 8GB RAM", 1899.99m, "SM-GALAXY-S21", 1, 2)
+                new ProdutoFisico
                 {
+                    Nome = "Smartphone Samsung Galaxy S21",
+                    Descricao = "Smartphone Android 128GB, 8GB RAM",
+                    Preco = 1899.99m,
+                    SKU = "SM-GALAXY-S21",
+                    LojaId = 1,
+                    CategoriaId = 2,
                     Peso = 0.195m,
-                    Tipo = "Fisico",
                     DataCriacao = DateTime.Now,
                     Ativo = true
                 },
-                new Produto("Notebook Dell Inspiron", "Notebook 15.6\", Intel i5, 8GB RAM, 256GB SSD", 2999.99m, "DELL-INSPIRON-15", 1, 3)
+                new ProdutoFisico
                 {
+                    Nome = "Notebook Dell Inspiron",
+                    Descricao = "Notebook 15.6\", Intel i5, 8GB RAM, 256GB SSD",
+                    Preco = 2999.99m,
+                    SKU = "DELL-INSPIRON-15",
+                    LojaId = 1,
+                    CategoriaId = 3,
                     Peso = 2.1m,
-                    Tipo = "Fisico",
-                    DataCriacao = DateTime.Now,
-                    Ativo = true
-                },
-                new Produto("E-book C# Avançado", "E-book completo sobre C# e .NET", 49.90m, "EBOOK-CSHARP-01", 1, 4)
-                {
-                    Tipo = "Digital",
                     DataCriacao = DateTime.Now,
                     Ativo = true
                 }
             };
-            await context.Produtos.AddRangeAsync(produtos);
+            await context.ProdutosFisicos.AddRangeAsync(produtosFisicos);
             await context.SaveChangesAsync();
 
-            // 6. Criar produtos digitais específicos
+            // 6. Criar produtos digitais
             var produtosDigitais = new[]
             {
-                new ProdutoDigital
+                new ProdutoDigital("E-book C# Avançado", "E-book completo sobre C# e .NET", 49.90m, "EBOOK-CSHARP-01", 1, 4,
+                                  "https://download.loja.com/ebooks/csharp-avancado.pdf", 12.5m, "PDF")
                 {
-                    ProdutoId = 3, // E-book C#
-                    UrlDownload = "https://download.loja.com/ebooks/csharp-avancado.pdf",
-                    TamanhoArquivoMB = 12.5m,
-                    FormatoArquivo = "PDF",
-                    LimiteDownloads = 5
+                    DataCriacao = DateTime.Now,
+                    Ativo = true
                 }
             };
             await context.ProdutosDigitais.AddRangeAsync(produtosDigitais);
@@ -283,7 +318,7 @@ public static class DbInitializer
             {
                 new Estoque
                 {
-                    ProdutoId = 1, // Smartphone
+                    ProdutoFisicoId = 1,
                     QuantidadeDisponivel = 50,
                     QuantidadeReservada = 0,
                     PontoRepor = 10,
@@ -292,7 +327,7 @@ public static class DbInitializer
                 },
                 new Estoque
                 {
-                    ProdutoId = 2, // Notebook
+                    ProdutoFisicoId = 2,
                     QuantidadeDisponivel = 30,
                     QuantidadeReservada = 0,
                     PontoRepor = 5,
@@ -312,10 +347,10 @@ public static class DbInitializer
             await context.Carrinhos.AddAsync(carrinho);
             await context.SaveChangesAsync();
 
-            // 9. Adicionar itens ao carrinho (USANDO CONSTRUTOR CORRETO)
+            // 9. Adicionar itens ao carrinho
             var itensCarrinho = new[]
             {
-                new CarrinhoItem(1, 1, 1, 1899.99m) // CarrinhoId, ProdutoId, Quantidade, PrecoUnitario
+                new CarrinhoItem(1, 1, null, 1, 1899.99m) // CarrinhoId, ProdutoFisicoId, ProdutoDigitalId, Quantidade, Preco
                 {
                     // DataAdicao é definida automaticamente no construtor
                 }
@@ -347,7 +382,7 @@ public static class DbInitializer
             Console.WriteLine($"   - {lojas.Length} lojas");
             Console.WriteLine($"   - {caixas.Length} caixas");
             Console.WriteLine($"   - {usuarios.Length} usuários");
-            Console.WriteLine($"   - {produtos.Length} produtos");
+            Console.WriteLine($"   - {produtosFisicos.Length} produtos físicos");
             Console.WriteLine($"   - {produtosDigitais.Length} produtos digitais");
             Console.WriteLine($"   - {estoques.Length} estoques");
             Console.WriteLine($"   - {itensCarrinho.Length} itens no carrinho");

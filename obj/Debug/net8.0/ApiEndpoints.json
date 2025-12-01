@@ -32,7 +32,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "CarrinhoController",
+    "ContainingType": "ProjetoEcommerce.Controllers.CarrinhoController",
     "Method": "GetCarrinho",
     "RelativePath": "api/Carrinho/{clienteId}",
     "HttpMethod": "GET",
@@ -47,7 +47,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "ProjetoEcommerce.Modelos.Carrinho",
+        "Type": "ProjetoEcommerce.Controllers.CarrinhoResponseDTO",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -58,7 +58,7 @@
     ]
   },
   {
-    "ContainingType": "CarrinhoController",
+    "ContainingType": "ProjetoEcommerce.Controllers.CarrinhoController",
     "Method": "AdicionarItem",
     "RelativePath": "api/Carrinho/adicionar-item",
     "HttpMethod": "POST",
@@ -67,37 +67,48 @@
     "Parameters": [
       {
         "Name": "request",
-        "Type": "AdicionarItemRequest",
+        "Type": "ProjetoEcommerce.Controllers.AdicionarItemRequestDTO",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "CarrinhoController",
-    "Method": "FinalizarPedido",
-    "RelativePath": "api/Carrinho/finalizar-pedido/{clienteId}",
-    "HttpMethod": "POST",
+    "ContainingType": "ProjetoEcommerce.Controllers.CarrinhoController",
+    "Method": "AtualizarQuantidade",
+    "RelativePath": "api/Carrinho/atualizar-quantidade/{itemId}",
+    "HttpMethod": "PUT",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "clienteId",
+        "Name": "itemId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "quantidade",
         "Type": "System.Int32",
         "IsRequired": true
       }
     ],
-    "ReturnTypes": [
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ProjetoEcommerce.Controllers.CarrinhoController",
+    "Method": "RemoverItem",
+    "RelativePath": "api/Carrinho/remover-item/{itemId}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
       {
-        "Type": "ProjetoEcommerce.Modelos.Pedido",
-        "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
-        ],
-        "StatusCode": 200
+        "Name": "itemId",
+        "Type": "System.Int32",
+        "IsRequired": true
       }
-    ]
+    ],
+    "ReturnTypes": []
   },
   {
     "ContainingType": "ProjetoEcommerce.Controllers.CategoriasController",
@@ -181,7 +192,7 @@
     "Parameters": [],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.IEnumerable\u00601[[ProjetoEcommerce.DTOs.EstoqueResponseDTO, ProjetoEcommerce, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[System.Object, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -201,13 +212,13 @@
     "Parameters": [
       {
         "Name": "estoqueDto",
-        "Type": "ProjetoEcommerce.DTOs.EstoqueDTO",
+        "Type": "ProjetoEcommerce.Controllers.EstoqueDTO",
         "IsRequired": true
       }
     ],
     "ReturnTypes": [
       {
-        "Type": "ProjetoEcommerce.DTOs.EstoqueResponseDTO",
+        "Type": "ProjetoEcommerce.Controllers.EstoqueResponseDTO",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -220,19 +231,19 @@
   {
     "ContainingType": "ProjetoEcommerce.Controllers.EstoquesController",
     "Method": "AjustarEstoque",
-    "RelativePath": "api/Estoques/{produtoId}/ajustar",
+    "RelativePath": "api/Estoques/{produtoFisicoId}/ajustar",
     "HttpMethod": "PUT",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "produtoId",
+        "Name": "produtoFisicoId",
         "Type": "System.Int32",
         "IsRequired": true
       },
       {
         "Name": "ajuste",
-        "Type": "ProjetoEcommerce.DTOs.AjusteEstoqueDTO",
+        "Type": "ProjetoEcommerce.Controllers.AjusteEstoqueDTO",
         "IsRequired": true
       }
     ],
@@ -269,7 +280,7 @@
     "Parameters": [],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.IEnumerable\u00601[[ProjetoEcommerce.DTOs.EstoqueAlertaDTO, ProjetoEcommerce, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[ProjetoEcommerce.Controllers.EstoqueAlertaDTO, ProjetoEcommerce, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -282,28 +293,18 @@
   {
     "ContainingType": "ProjetoEcommerce.Controllers.EstoquesController",
     "Method": "GetEstoquePorProduto",
-    "RelativePath": "api/Estoques/produto/{produtoId}",
+    "RelativePath": "api/Estoques/produto/{produtoFisicoId}",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "produtoId",
+        "Name": "produtoFisicoId",
         "Type": "System.Int32",
         "IsRequired": true
       }
     ],
-    "ReturnTypes": [
-      {
-        "Type": "ProjetoEcommerce.DTOs.EstoqueResponseDTO",
-        "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
-        ],
-        "StatusCode": 200
-      }
-    ]
+    "ReturnTypes": []
   },
   {
     "ContainingType": "ProjetoEcommerce.Controllers.LojasController",
@@ -457,6 +458,26 @@
   },
   {
     "ContainingType": "ProjetoEcommerce.Controllers.PedidosController",
+    "Method": "GetTodosPedidos",
+    "RelativePath": "api/Pedidos",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[ProjetoEcommerce.DTOs.PedidoResponseDTO, ProjetoEcommerce, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "ProjetoEcommerce.Controllers.PedidosController",
     "Method": "GetPedido",
     "RelativePath": "api/Pedidos/{id}",
     "HttpMethod": "GET",
@@ -480,6 +501,43 @@
         "StatusCode": 200
       }
     ]
+  },
+  {
+    "ContainingType": "ProjetoEcommerce.Controllers.PedidosController",
+    "Method": "CancelarPedido",
+    "RelativePath": "api/Pedidos/{id}/cancelar",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ProjetoEcommerce.Controllers.PedidosController",
+    "Method": "AtualizarPagamento",
+    "RelativePath": "api/Pedidos/{id}/pagamento",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "AtualizarPagamentoDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
   },
   {
     "ContainingType": "ProjetoEcommerce.Controllers.PedidosController",
@@ -530,7 +588,7 @@
   },
   {
     "ContainingType": "ProjetoEcommerce.Controllers.ProdutosController",
-    "Method": "GetProdutos",
+    "Method": "GetProdutosFisicos",
     "RelativePath": "api/Produtos",
     "HttpMethod": "GET",
     "IsController": true,
@@ -538,7 +596,7 @@
     "Parameters": [],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.IEnumerable\u00601[[ProjetoEcommerce.DTOs.ProdutoResponseDTO, ProjetoEcommerce, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[System.Object, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -550,7 +608,7 @@
   },
   {
     "ContainingType": "ProjetoEcommerce.Controllers.ProdutosController",
-    "Method": "PostProduto",
+    "Method": "PostProdutoFisico",
     "RelativePath": "api/Produtos",
     "HttpMethod": "POST",
     "IsController": true,
@@ -558,25 +616,15 @@
     "Parameters": [
       {
         "Name": "request",
-        "Type": "ProjetoEcommerce.DTOs.ProdutoDTO",
+        "Type": "ProjetoEcommerce.Controllers.ProdutoFisicoDTO",
         "IsRequired": true
       }
     ],
-    "ReturnTypes": [
-      {
-        "Type": "ProjetoEcommerce.DTOs.ProdutoResponseDTO",
-        "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
-        ],
-        "StatusCode": 200
-      }
-    ]
+    "ReturnTypes": []
   },
   {
     "ContainingType": "ProjetoEcommerce.Controllers.ProdutosController",
-    "Method": "GetProduto",
+    "Method": "GetProdutoFisico",
     "RelativePath": "api/Produtos/{id}",
     "HttpMethod": "GET",
     "IsController": true,
@@ -590,7 +638,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "ProjetoEcommerce.DTOs.ProdutoResponseDTO",
+        "Type": "ProjetoEcommerce.Controllers.ProdutoFisicoResponseDTO",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -602,8 +650,8 @@
   },
   {
     "ContainingType": "ProjetoEcommerce.Controllers.ProdutosController",
-    "Method": "PutProduto",
-    "RelativePath": "api/Produtos/{id}",
+    "Method": "AtualizarDimensoes",
+    "RelativePath": "api/Produtos/{id}/dimensoes",
     "HttpMethod": "PUT",
     "IsController": true,
     "Order": 0,
@@ -614,27 +662,17 @@
         "IsRequired": true
       },
       {
-        "Name": "request",
-        "Type": "ProjetoEcommerce.DTOs.ProdutoUpdateDTO",
+        "Name": "dimensoes",
+        "Type": "ProjetoEcommerce.Controllers.DimensoesDTO",
         "IsRequired": true
       }
     ],
-    "ReturnTypes": [
-      {
-        "Type": "ProjetoEcommerce.DTOs.ProdutoResponseDTO",
-        "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
-        ],
-        "StatusCode": 200
-      }
-    ]
+    "ReturnTypes": []
   },
   {
     "ContainingType": "ProjetoEcommerce.Controllers.ProdutosController",
-    "Method": "DeleteProduto",
-    "RelativePath": "api/Produtos/{id}",
+    "Method": "DeleteProdutoFisicoPermanente",
+    "RelativePath": "api/Produtos/{id}/permanente",
     "HttpMethod": "DELETE",
     "IsController": true,
     "Order": 0,
@@ -649,9 +687,45 @@
   },
   {
     "ContainingType": "ProjetoEcommerce.Controllers.ProdutosController",
-    "Method": "AtualizarPreco",
-    "RelativePath": "api/Produtos/{id}/preco",
-    "HttpMethod": "PUT",
+    "Method": "DebugPostStepByStep",
+    "RelativePath": "api/Produtos/debug-stepbystep",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "ProjetoEcommerce.Controllers.ProdutoFisicoDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ProjetoEcommerce.Controllers.ProdutosBaseController",
+    "Method": "GetTodosProdutos",
+    "RelativePath": "api/ProdutosBase",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[System.Object, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "ProjetoEcommerce.Controllers.ProdutosBaseController",
+    "Method": "GetProduto",
+    "RelativePath": "api/ProdutosBase/{id}",
+    "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
     "Parameters": [
@@ -659,80 +733,35 @@
         "Name": "id",
         "Type": "System.Int32",
         "IsRequired": true
-      },
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ProjetoEcommerce.Controllers.ProdutosBaseController",
+    "Method": "CalcularImposto",
+    "RelativePath": "api/ProdutosBase/calcular-imposto",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
       {
-        "Name": "novoPreco",
-        "Type": "System.Decimal",
+        "Name": "produtosIds",
+        "Type": "System.Collections.Generic.List\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "ProjetoEcommerce.Controllers.ProdutosController",
-    "Method": "GetProdutosPorCategoria",
-    "RelativePath": "api/Produtos/categoria/{categoriaId}",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "categoriaId",
-        "Type": "System.Int32",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": [
-      {
-        "Type": "System.Collections.Generic.IEnumerable\u00601[[ProjetoEcommerce.DTOs.ProdutoResponseDTO, ProjetoEcommerce, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
-        "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
-        ],
-        "StatusCode": 200
-      }
-    ]
-  },
-  {
-    "ContainingType": "ProjetoEcommerce.Controllers.ProdutosController",
-    "Method": "GetProdutosDigitais",
-    "RelativePath": "api/Produtos/digitais",
+    "ContainingType": "ProjetoEcommerce.Controllers.ProdutosBaseController",
+    "Method": "DebugProdutosBase",
+    "RelativePath": "api/ProdutosBase/debug",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
     "Parameters": [],
-    "ReturnTypes": [
-      {
-        "Type": "System.Collections.Generic.IEnumerable\u00601[[ProjetoEcommerce.DTOs.ProdutoResponseDTO, ProjetoEcommerce, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
-        "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
-        ],
-        "StatusCode": 200
-      }
-    ]
-  },
-  {
-    "ContainingType": "ProjetoEcommerce.Controllers.ProdutosController",
-    "Method": "GetProdutosValidos",
-    "RelativePath": "api/Produtos/validos",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [],
-    "ReturnTypes": [
-      {
-        "Type": "System.Collections.Generic.IEnumerable\u00601[[ProjetoEcommerce.DTOs.ProdutoResponseDTO, ProjetoEcommerce, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
-        "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
-        ],
-        "StatusCode": 200
-      }
-    ]
+    "ReturnTypes": []
   },
   {
     "ContainingType": "ProjetoEcommerce.Controllers.ProdutosDigitaisController",
@@ -744,7 +773,7 @@
     "Parameters": [],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.IEnumerable\u00601[[ProdutoDigitalDTO, ProjetoEcommerce, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[System.Object, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -756,23 +785,75 @@
   },
   {
     "ContainingType": "ProjetoEcommerce.Controllers.ProdutosDigitaisController",
-    "Method": "SolicitarDownload",
-    "RelativePath": "api/ProdutosDigitais/download/{produtoId}",
+    "Method": "CriarProdutoDigital",
+    "RelativePath": "api/ProdutosDigitais",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "produtoId",
-        "Type": "System.Int32",
+        "Name": "request",
+        "Type": "ProjetoEcommerce.Controllers.ProdutoDigitalDTO",
         "IsRequired": true
-      },
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ProjetoEcommerce.Controllers.ProdutosDigitaisController",
+    "Method": "ObterProdutoDigital",
+    "RelativePath": "api/ProdutosDigitais/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
       {
-        "Name": "usuarioId",
+        "Name": "id",
         "Type": "System.Int32",
         "IsRequired": true
       }
     ],
+    "ReturnTypes": [
+      {
+        "Type": "ProjetoEcommerce.Controllers.ProdutoDigitalResponseDTO",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "ProjetoEcommerce.Controllers.ProdutosDigitaisController",
+    "Method": "RenovarLicenca",
+    "RelativePath": "api/ProdutosDigitais/{id}/renovar-licenca",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "dias",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ProjetoEcommerce.Controllers.ProdutosDigitaisController",
+    "Method": "DebugProdutosDigitais",
+    "RelativePath": "api/ProdutosDigitais/debug",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
     "ReturnTypes": []
   },
   {

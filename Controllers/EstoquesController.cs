@@ -17,61 +17,58 @@ namespace ProjetoEcommerce.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<EstoqueResponseDTO>>> GetEstoques()
+        public async Task<ActionResult<IEnumerable<object>>> GetEstoques()
         {
             try
             {
+                // 🔥 CONSULTA SEGURA - sem includes complexos
                 var estoques = await _context.Estoques
-                    .Include(e => e.Produto)
-                    .ThenInclude(p => p.Loja)
-                    .Select(e => new EstoqueResponseDTO
+                    .Select(e => new
                     {
-                        Id = e.Id,
-                        ProdutoId = e.ProdutoId,
-                        ProdutoNome = e.Produto.Nome,
-                        LojaNome = e.Produto.Loja.Nome,
+                        e.Id,
+                        ProdutoFisicoId = e.ProdutoFisicoId,
                         QuantidadeDisponivel = e.QuantidadeDisponivel,
                         QuantidadeReservada = e.QuantidadeReservada,
-                        EstoqueReal = e.EstoqueReal(), // USANDO MÉTODO COM ENCAPSULAMENTO
-                        PontoRepor = e.PontoRepor,
-                        EstoqueMinimo = e.EstoqueMinimo,
-                        UltimoMovimento = e.UltimoMovimento,
-                        Status = e.StatusEstoque(), // USANDO MÉTODO COM POLIMORFISMO
-                        PrecisaRepor = e.PrecisaRepor() // USANDO MÉTODO COM POLIMORFISMO
+                        EstoqueReal = e.QuantidadeDisponivel - e.QuantidadeReservada,
+                        e.PontoRepor,
+                        e.EstoqueMinimo,
+                        UltimoMovimento = e.UltimoMovimento != null ? e.UltimoMovimento.Value.ToString("dd/MM/yyyy HH:mm") : "Nunca"
                     })
                     .ToListAsync();
 
-                return Ok(estoques);
+                return Ok(new
+                {
+                    Message = "Estoques carregados com sucesso",
+                    Total = estoques.Count,
+                    Data = estoques
+                });
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"🔴 ERRO GET ESTOQUES: {ex.Message}");
                 return StatusCode(500, $"Erro ao buscar estoques: {ex.Message}");
             }
         }
 
-        [HttpGet("produto/{produtoId}")]
-        public async Task<ActionResult<EstoqueResponseDTO>> GetEstoquePorProduto(int produtoId)
+        [HttpGet("produto/{produtoFisicoId}")]
+        public async Task<ActionResult<object>> GetEstoquePorProduto(int produtoFisicoId)
         {
             try
             {
+                // 🔥 CONSULTA SEGURA
                 var estoque = await _context.Estoques
-                    .Include(e => e.Produto)
-                    .ThenInclude(p => p.Loja)
-                    .Where(e => e.ProdutoId == produtoId)
-                    .Select(e => new EstoqueResponseDTO
+                    .Where(e => e.ProdutoFisicoId == produtoFisicoId)
+                    .Select(e => new
                     {
-                        Id = e.Id,
-                        ProdutoId = e.ProdutoId,
-                        ProdutoNome = e.Produto.Nome,
-                        LojaNome = e.Produto.Loja.Nome,
+                        e.Id,
+                        ProdutoFisicoId = e.ProdutoFisicoId,
                         QuantidadeDisponivel = e.QuantidadeDisponivel,
                         QuantidadeReservada = e.QuantidadeReservada,
-                        EstoqueReal = e.EstoqueReal(),
-                        PontoRepor = e.PontoRepor,
-                        EstoqueMinimo = e.EstoqueMinimo,
-                        UltimoMovimento = e.UltimoMovimento,
-                        Status = e.StatusEstoque(true), // SOBRECARGA - com quantidade
-                        PrecisaRepor = e.PrecisaRepor()
+                        EstoqueReal = e.QuantidadeDisponivel - e.QuantidadeReservada,
+                        e.PontoRepor,
+                        e.EstoqueMinimo,
+                        UltimoMovimento = e.UltimoMovimento != null ? e.UltimoMovimento.Value.ToString("dd/MM/yyyy HH:mm") : "Nunca",
+                        Status = e.QuantidadeDisponivel - e.QuantidadeReservada <= e.PontoRepor ? "Atenção" : "Normal"
                     })
                     .FirstOrDefaultAsync();
 
@@ -84,65 +81,77 @@ namespace ProjetoEcommerce.Controllers
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"🔴 ERRO GET ESTOQUE POR PRODUTO: {ex.Message}");
                 return StatusCode(500, $"Erro ao buscar estoque: {ex.Message}");
             }
         }
 
-        [HttpPut("{produtoId}/ajustar")]
-        public async Task<ActionResult> AjustarEstoque(int produtoId, [FromBody] AjusteEstoqueDTO ajuste)
+        [HttpPut("{produtoFisicoId}/ajustar")]
+        public async Task<ActionResult> AjustarEstoque(int produtoFisicoId, [FromBody] AjusteEstoqueDTO ajuste)
         {
             try
             {
+                // 🔥 VALIDAR TIPO
+                var tiposValidos = new[] { "entrada", "saida", "reserva", "liberar" };
+                if (!tiposValidos.Contains(ajuste.Tipo?.ToLower()))
+                {
+                    return BadRequest("Tipo de ajuste inválido. Use: entrada, saida, reserva ou liberar");
+                }
+
+                if (ajuste.Quantidade <= 0)
+                {
+                    return BadRequest("Quantidade deve ser maior que zero");
+                }
+
+                // 🔥 BUSCAR ESTOQUE (consulta simples)
                 var estoque = await _context.Estoques
-                    .Include(e => e.Produto)
-                    .FirstOrDefaultAsync(e => e.ProdutoId == produtoId);
+                    .FirstOrDefaultAsync(e => e.ProdutoFisicoId == produtoFisicoId);
 
                 if (estoque == null)
                 {
                     return NotFound("Estoque do produto não encontrado");
                 }
 
-                // ENCAPSULAMENTO - Usando métodos da classe Estoque
-                if (ajuste.Tipo == "entrada")
+                // 🔥 APLICAR AJUSTE
+                switch (ajuste.Tipo.ToLower())
                 {
-                    estoque.AdicionarEstoque(ajuste.Quantidade);
-                }
-                else if (ajuste.Tipo == "saida")
-                {
-                    estoque.BaixarEstoque(ajuste.Quantidade);
-                }
-                else if (ajuste.Tipo == "reserva")
-                {
-                    estoque.Reservar(ajuste.Quantidade);
-                }
-                else if (ajuste.Tipo == "liberar")
-                {
-                    estoque.LiberarReserva(ajuste.Quantidade);
-                }
-                else
-                {
-                    return BadRequest("Tipo de ajuste inválido. Use: entrada, saida, reserva ou liberar");
+                    case "entrada":
+                        estoque.QuantidadeDisponivel += ajuste.Quantidade;
+                        break;
+                    case "saida":
+                        if (estoque.QuantidadeDisponivel < ajuste.Quantidade)
+                            return BadRequest("Estoque insuficiente para saída");
+                        estoque.QuantidadeDisponivel -= ajuste.Quantidade;
+                        break;
+                    case "reserva":
+                        if (estoque.QuantidadeDisponivel - estoque.QuantidadeReservada < ajuste.Quantidade)
+                            return BadRequest("Estoque disponível insuficiente para reserva");
+                        estoque.QuantidadeReservada += ajuste.Quantidade;
+                        break;
+                    case "liberar":
+                        if (estoque.QuantidadeReservada < ajuste.Quantidade)
+                            return BadRequest("Quantidade de reserva insuficiente para liberar");
+                        estoque.QuantidadeReservada -= ajuste.Quantidade;
+                        break;
                 }
 
+                estoque.UltimoMovimento = DateTime.Now;
                 await _context.SaveChangesAsync();
 
                 return Ok(new
                 {
                     message = "Estoque ajustado com sucesso",
-                    produtoId = produtoId,
-                    produtoNome = estoque.Produto.Nome,
+                    produtoFisicoId = produtoFisicoId,
+                    tipoAjuste = ajuste.Tipo,
+                    quantidade = ajuste.Quantidade,
                     quantidadeDisponivel = estoque.QuantidadeDisponivel,
                     quantidadeReservada = estoque.QuantidadeReservada,
-                    estoqueReal = estoque.EstoqueReal(),
-                    status = estoque.StatusEstoque()
+                    estoqueReal = estoque.QuantidadeDisponivel - estoque.QuantidadeReservada
                 });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"🔴 ERRO AJUSTAR ESTOQUE: {ex.Message}");
                 return StatusCode(500, $"Erro interno: {ex.Message}");
             }
         }
@@ -153,15 +162,14 @@ namespace ProjetoEcommerce.Controllers
             try
             {
                 var estoque = await _context.Estoques
-                    .Include(e => e.Produto)
-                    .FirstOrDefaultAsync(e => e.ProdutoId == produtoId);
+                    .Include(e => e.ProdutoFisico)
+                    .FirstOrDefaultAsync(e => e.ProdutoFisicoId == produtoId);
 
                 if (estoque == null)
                 {
                     return NotFound("Estoque do produto não encontrado");
                 }
 
-                // ENCAPSULAMENTO - Usando método Reservar com validação
                 estoque.Reservar(quantidade);
                 await _context.SaveChangesAsync();
 
@@ -169,7 +177,7 @@ namespace ProjetoEcommerce.Controllers
                 {
                     message = "Estoque reservado com sucesso",
                     produtoId = produtoId,
-                    produtoNome = estoque.Produto.Nome,
+                    produtoNome = estoque.ProdutoFisico.Nome,
                     quantidadeReservada = quantidade,
                     estoqueReal = estoque.EstoqueReal()
                 });
@@ -190,14 +198,14 @@ namespace ProjetoEcommerce.Controllers
             try
             {
                 var estoques = await _context.Estoques
-                    .Include(e => e.Produto)
+                    .Include(e => e.ProdutoFisico)
                     .ThenInclude(p => p.Loja)
-                    .Where(e => e.PrecisaRepor()) // POLIMORFISMO - Usando método da classe
+                    .Where(e => e.PrecisaRepor())
                     .Select(e => new EstoqueAlertaDTO
                     {
-                        ProdutoId = e.ProdutoId,
-                        ProdutoNome = e.Produto.Nome,
-                        LojaNome = e.Produto.Loja.Nome,
+                        ProdutoId = e.ProdutoFisicoId,
+                        ProdutoNome = e.ProdutoFisico.Nome,
+                        LojaNome = e.ProdutoFisico.Loja.Nome,
                         QuantidadeDisponivel = e.QuantidadeDisponivel,
                         QuantidadeReservada = e.QuantidadeReservada,
                         EstoqueReal = e.EstoqueReal(),
@@ -221,22 +229,22 @@ namespace ProjetoEcommerce.Controllers
         {
             try
             {
-                // Verificar se produto existe
-                var produto = await _context.Produtos.FindAsync(estoqueDto.ProdutoId);
-                if (produto == null)
+                // Verificar se produto físico existe
+                var produtoFisico = await _context.ProdutosFisicos.FindAsync(estoqueDto.ProdutoFisicoId);
+                if (produtoFisico == null)
                 {
-                    return BadRequest("Produto não encontrado");
+                    return BadRequest("Produto físico não encontrado");
                 }
 
                 // Verificar se já existe estoque para este produto
-                if (await _context.Estoques.AnyAsync(e => e.ProdutoId == estoqueDto.ProdutoId))
+                if (await _context.Estoques.AnyAsync(e => e.ProdutoFisicoId == estoqueDto.ProdutoFisicoId))
                 {
-                    return BadRequest("Já existe estoque cadastrado para este produto");
+                    return BadRequest("Já existe estoque cadastrado para este produto físico");
                 }
 
                 var estoque = new Estoque
                 {
-                    ProdutoId = estoqueDto.ProdutoId,
+                    ProdutoFisicoId = estoqueDto.ProdutoFisicoId,
                     QuantidadeDisponivel = estoqueDto.QuantidadeDisponivel,
                     QuantidadeReservada = 0,
                     PontoRepor = estoqueDto.PontoRepor,
@@ -250,8 +258,8 @@ namespace ProjetoEcommerce.Controllers
                 var response = new EstoqueResponseDTO
                 {
                     Id = estoque.Id,
-                    ProdutoId = estoque.ProdutoId,
-                    ProdutoNome = produto.Nome,
+                    ProdutoId = estoque.ProdutoFisicoId,
+                    ProdutoNome = produtoFisico.Nome,
                     QuantidadeDisponivel = estoque.QuantidadeDisponivel,
                     QuantidadeReservada = estoque.QuantidadeReservada,
                     EstoqueReal = estoque.EstoqueReal(),
@@ -262,12 +270,58 @@ namespace ProjetoEcommerce.Controllers
                     PrecisaRepor = estoque.PrecisaRepor()
                 };
 
-                return CreatedAtAction(nameof(GetEstoquePorProduto), new { produtoId = estoque.ProdutoId }, response);
+                return CreatedAtAction(nameof(GetEstoquePorProduto), new { produtoFisicoId = estoque.ProdutoFisicoId }, response);
             }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Erro interno: {ex.Message}");
             }
         }
+    }
+
+    // DTOs movidos para cá
+    public class EstoqueDTO
+    {
+        public int ProdutoFisicoId { get; set; }
+        public int QuantidadeDisponivel { get; set; }
+        public int PontoRepor { get; set; }
+        public int EstoqueMinimo { get; set; }
+    }
+
+    public class EstoqueResponseDTO
+    {
+        public int Id { get; set; }
+        public int ProdutoId { get; set; }
+        public string ProdutoNome { get; set; }
+        public string LojaNome { get; set; }
+        public int QuantidadeDisponivel { get; set; }
+        public int QuantidadeReservada { get; set; }
+        public int EstoqueReal { get; set; }
+        public int PontoRepor { get; set; }
+        public int EstoqueMinimo { get; set; }
+        public DateTime? UltimoMovimento { get; set; }
+        public string Status { get; set; }
+        public bool PrecisaRepor { get; set; }
+    }
+
+    public class EstoqueAlertaDTO
+    {
+        public int ProdutoId { get; set; }
+        public string ProdutoNome { get; set; }
+        public string LojaNome { get; set; }
+        public int QuantidadeDisponivel { get; set; }
+        public int QuantidadeReservada { get; set; }
+        public int EstoqueReal { get; set; }
+        public int PontoRepor { get; set; }
+        public int EstoqueMinimo { get; set; }
+        public string Status { get; set; }
+        public DateTime? UltimoMovimento { get; set; }
+    }
+
+    public class AjusteEstoqueDTO
+    {
+        public string Tipo { get; set; } // "entrada", "saida", "reserva", "liberar"
+        public int Quantidade { get; set; }
+        public string Motivo { get; set; }
     }
 }

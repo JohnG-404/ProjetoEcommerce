@@ -84,3 +84,4 @@ C:\Users\John\source\repos\ProjetoEcommerce\ProjetoEcommerce\obj\Debug\net8.0\re
 C:\Users\John\source\repos\ProjetoEcommerce\ProjetoEcommerce\obj\Debug\net8.0\ProjetoEcommerce.pdb
 C:\Users\John\source\repos\ProjetoEcommerce\ProjetoEcommerce\obj\Debug\net8.0\ProjetoEcommerce.genruntimeconfig.cache
 C:\Users\John\source\repos\ProjetoEcommerce\ProjetoEcommerce\obj\Debug\net8.0\ref\ProjetoEcommerce.dll
+C:\Users\John\source\repos\ProjetoEcommerce\ProjetoEcommerce\obj\Debug\net8.0\ProjetoEcommerce.sourcelink.json

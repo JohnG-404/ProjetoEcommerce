@@ -1,15 +1,16 @@
-﻿namespace ProjetoEcommerce.Modelos { 
-
-public class Categoria
+﻿namespace ProjetoEcommerce.Modelos
 {
-    public int Id { get; set; }
-    public string Nome { get; set; }
-    public string Descricao { get; set; }
-    public int? ParentId { get; set; }
+    public class Categoria
+    {
+        public int Id { get; set; }
+        public string Nome { get; set; }
+        public string Descricao { get; set; }
+        public int? ParentId { get; set; }
+        public bool Ativo { get; set; } = true; // 🔥 ADICIONADO
 
-    // Propriedades de navegação
-    public virtual Categoria Parent { get; set; }
-    public virtual ICollection<Categoria> Subcategorias { get; set; } = new List<Categoria>();
-    public virtual ICollection<Produto> Produtos { get; set; } = new List<Produto>();
+        // 🔥 ATUALIZADO - Agora referencia ProdutoBase
+        public virtual Categoria Parent { get; set; }
+        public virtual ICollection<Categoria> Subcategorias { get; set; } = new List<Categoria>();
+        public virtual ICollection<ProdutoBase> ProdutosBase { get; set; } = new List<ProdutoBase>();
     }
 }

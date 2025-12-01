@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ProjetoEcommerce.DTOs;
 using ProjetoEcommerce.Modelos;
 using ProjetoEcommerce.Services;
-using ProjetoEcommerce.Interfaces;
 
 namespace ProjetoEcommerce.Controllers
 {
@@ -19,34 +17,124 @@ namespace ProjetoEcommerce.Controllers
             _context = context;
             _notificacaoService = notificacaoService;
         }
-
-        // GET: api/produtos
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProdutoResponseDTO>>> GetProdutos()
+        // 🔥 DEBUG DO POST
+        // 🔥 DEBUG DO POST MAIS DETALHADO
+        [HttpPost("debug-stepbystep")]
+        public async Task<ActionResult> DebugPostStepByStep([FromBody] ProdutoFisicoDTO request)
         {
             try
             {
-                var produtos = await _context.Produtos
+                var debugSteps = new List<object>();
+
+                // 🔥 PASSO 1: Validar dados básicos
+                debugSteps.Add(new { Step = "1. Validação Dados", Status = "Iniciada", Data = request });
+
+                if (string.IsNullOrWhiteSpace(request.Nome))
+                    return BadRequest("Nome é obrigatório");
+
+                if (string.IsNullOrWhiteSpace(request.SKU))
+                    return BadRequest("SKU é obrigatório");
+
+                debugSteps.Add(new { Step = "1. Validação Dados", Status = "Concluída" });
+
+                // 🔥 PASSO 2: Consulta SIMPLES da Loja (sem includes)
+                debugSteps.Add(new { Step = "2. Consulta Loja", Status = "Iniciada", LojaId = request.LojaId });
+
+                var loja = await _context.Lojas
+                    .Where(l => l.Id == request.LojaId)
+                    .Select(l => new { l.Id, l.Nome })
+                    .FirstOrDefaultAsync();
+
+                debugSteps.Add(new { Step = "2. Consulta Loja", Status = loja != null ? "Encontrada" : "Não encontrada", Loja = loja });
+
+                // 🔥 PASSO 3: Consulta SIMPLES da Categoria (sem includes)  
+                debugSteps.Add(new { Step = "3. Consulta Categoria", Status = "Iniciada", CategoriaId = request.CategoriaId });
+
+                var categoria = await _context.Categorias
+                    .Where(c => c.Id == request.CategoriaId)
+                    .Select(c => new { c.Id, c.Nome })
+                    .FirstOrDefaultAsync();
+
+                debugSteps.Add(new { Step = "3. Consulta Categoria", Status = categoria != null ? "Encontrada" : "Não encontrada", Categoria = categoria });
+
+                // 🔥 PASSO 4: Consulta SIMPLES do SKU (sem includes)
+                debugSteps.Add(new { Step = "4. Verificar SKU", Status = "Iniciada", SKU = request.SKU });
+
+                var skuExistente = await _context.ProdutosBase
+                    .Where(p => p.SKU == request.SKU)
+                    .Select(p => new { p.Id, p.SKU })
+                    .AnyAsync();
+
+                debugSteps.Add(new { Step = "4. Verificar SKU", Status = skuExistente ? "Já existe" : "Disponível" });
+
+                // 🔥 PASSO 5: Criar produto (apenas em memória)
+                debugSteps.Add(new { Step = "5. Criar Produto", Status = "Iniciada" });
+
+                var produto = new ProdutoFisico
+                {
+                    Nome = request.Nome.Trim(),
+                    Descricao = request.Descricao?.Trim() ?? string.Empty,
+                    Preco = request.Preco,
+                    SKU = request.SKU.Trim(),
+                    LojaId = request.LojaId,
+                    CategoriaId = request.CategoriaId,
+                    Peso = request.Peso
+                };
+
+                debugSteps.Add(new { Step = "5. Criar Produto", Status = "Concluída", Produto = new { produto.Nome, produto.SKU } });
+
+                return Ok(new
+                {
+                    Message = "Debug POST Step-by-Step concluído",
+                    Steps = debugSteps
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    Message = "Erro no debug POST Step-by-Step",
+                    Error = ex.Message,
+                    StackTrace = ex.StackTrace,
+                    InnerException = ex.InnerException?.Message
+                });
+            }
+        }
+        // GET: api/produtos - APENAS PRODUTOS FÍSICOS
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<object>>> GetProdutosFisicos()
+        {
+            try
+            {
+                // 🔥 CONSULTA MAIS SIMPLES E SEGURA
+                var produtos = await _context.ProdutosFisicos
                     .Where(p => p.Ativo)
-                    .Include(p => p.Categoria)
-                    .Include(p => p.Loja)
-                    .Include(p => p.Estoque)
-                    .Select(p => new ProdutoResponseDTO
+                    .Select(p => new
                     {
-                        Id = p.Id,
-                        Nome = p.Nome,
-                        Descricao = p.Descricao,
-                        Preco = p.Preco,
+                        // 🔥 PROPRIEDADES BÁSICAS PRIMEIRO
+                        p.Id,
+                        p.Nome,
+                        Descricao = p.Descricao ?? "",
+                        p.Preco,
+                        p.SKU,
+
+                        // 🔥 PROPRIEDADES CALCULADAS
+                        PrecoComImposto = p.CalcularPrecoComImposto(),
+
+                        // 🔥 RELACIONAMENTOS COM VERIFICAÇÃO
+                        Categoria = p.Categoria != null ? p.Categoria.Nome : "",
+                        Loja = p.Loja != null ? p.Loja.Nome : "",
+
+                        // 🔥 PROPRIEDADES ESPECÍFICAS
                         Peso = p.Peso,
-                        SKU = p.SKU,
-                        Categoria = p.Categoria.Nome,
-                        CategoriaId = p.CategoriaId,
-                        Loja = p.Loja.Nome,
-                        LojaId = p.LojaId,
+                        Dimensoes = p.ObterDimensoes(),
+                        Volume = p.CalcularVolume(),
+
+                        // 🔥 ESTOQUE COM VERIFICAÇÃO
                         Estoque = p.Estoque != null ? p.Estoque.QuantidadeDisponivel : 0,
-                        Ativo = p.Ativo,
-                        DataCriacao = p.DataCriacao,
-                        Tipo = p.Tipo
+
+                        PodeEnviar = p.PodeSerEnviado(),
+                        p.DataCriacao
                     })
                     .ToListAsync();
 
@@ -54,299 +142,251 @@ namespace ProjetoEcommerce.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Erro ao buscar produtos: {ex.Message}");
-            }
-        }
+                // 🔥 LOG DETALHADO
+                Console.WriteLine($"🔴 ERRO DETALHADO: {ex.Message}");
+                Console.WriteLine($"🔴 STACK TRACE: {ex.StackTrace}");
 
-        // GET: api/produtos/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ProdutoResponseDTO>> GetProduto(int id)
-        {
-            try
-            {
-                var produto = await _context.Produtos
-                    .Include(p => p.Categoria)
-                    .Include(p => p.Loja)
-                    .Include(p => p.Estoque)
-                    .Where(p => p.Id == id)
-                    .Select(p => new ProdutoResponseDTO
-                    {
-                        Id = p.Id,
-                        Nome = p.Nome,
-                        Descricao = p.Descricao,
-                        Preco = p.Preco,
-                        Peso = p.Peso,
-                        SKU = p.SKU,
-                        Categoria = p.Categoria.Nome,
-                        CategoriaId = p.CategoriaId,
-                        Loja = p.Loja.Nome,
-                        LojaId = p.LojaId,
-                        Estoque = p.Estoque != null ? p.Estoque.QuantidadeDisponivel : 0,
-                        Ativo = p.Ativo,
-                        DataCriacao = p.DataCriacao,
-                        Tipo = p.Tipo
-                    })
-                    .FirstOrDefaultAsync();
-
-                if (produto == null)
+                if (ex.InnerException != null)
                 {
-                    return NotFound("Produto não encontrado");
+                    Console.WriteLine($"🔴 INNER EXCEPTION: {ex.InnerException.Message}");
                 }
 
-                return produto;
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Erro ao buscar produto: {ex.Message}");
+                return StatusCode(500, $"Erro ao buscar produtos físicos: {ex.Message}");
             }
         }
 
-        // POST: api/produtos
         [HttpPost]
-        public async Task<ActionResult<ProdutoResponseDTO>> PostProduto([FromBody] ProdutoDTO request)
+        public async Task<ActionResult<object>> PostProdutoFisico([FromBody] ProdutoFisicoDTO request)
         {
             try
             {
-                // Verificar se a loja existe
-                var loja = await _context.Lojas.FindAsync(request.LojaId);
-                if (loja == null)
-                {
+                // 🔥 VALIDAÇÃO BÁSICA (já testada no debug)
+                if (string.IsNullOrWhiteSpace(request.Nome))
+                    return BadRequest("Nome é obrigatório");
+
+                if (string.IsNullOrWhiteSpace(request.SKU))
+                    return BadRequest("SKU é obrigatório");
+
+                if (request.Preco <= 0)
+                    return BadRequest("Preço deve ser maior que zero");
+
+                if (request.LojaId <= 0)
+                    return BadRequest("LojaId inválido");
+
+                if (request.CategoriaId <= 0)
+                    return BadRequest("CategoriaId inválido");
+
+                // 🔥 VERIFICAÇÕES SIMPLES (já testadas no debug)
+                var lojaExiste = await _context.Lojas.AnyAsync(l => l.Id == request.LojaId);
+                if (!lojaExiste)
                     return BadRequest("Loja não encontrada");
-                }
 
-                // Verificar se a categoria existe
-                var categoria = await _context.Categorias.FindAsync(request.CategoriaId);
-                if (categoria == null)
-                {
+                var categoriaExiste = await _context.Categorias.AnyAsync(c => c.Id == request.CategoriaId);
+                if (!categoriaExiste)
                     return BadRequest("Categoria não encontrada");
-                }
 
-                // Verificar se SKU já existe
-                if (await _context.Produtos.AnyAsync(p => p.SKU == request.SKU))
-                {
+                var skuExistente = await _context.ProdutosBase.AnyAsync(p => p.SKU == request.SKU);
+                if (skuExistente)
                     return BadRequest("SKU já cadastrado");
-                }
 
-                // HERANÇA SIMULADA - Criar produto base
-                Produto produto;
-
-                if (request.Tipo == "Digital")
+                // 🔥 CRIAR PRODUTO DE FORMA SEGURA
+                var produto = new ProdutoFisico
                 {
-                    // ENCAPSULAMENTO - Usando construtor específico
-                    produto = new Produto(request.Nome, request.Descricao, request.Preco, request.SKU, request.LojaId, request.CategoriaId);
-                    produto.DefinirComoDigital(); // MÉTODO ESPECÍFICO
-                }
-                else
+                    Nome = request.Nome.Trim(),
+                    Descricao = request.Descricao?.Trim() ?? string.Empty,
+                    Preco = request.Preco,
+                    SKU = request.SKU.Trim(),
+                    LojaId = request.LojaId,
+                    CategoriaId = request.CategoriaId,
+                    Peso = request.Peso
+                };
+
+                // Definir dimensões se fornecidas
+                if (request.Altura.HasValue && request.Largura.HasValue && request.Profundidade.HasValue)
                 {
-                    produto = new Produto(request.Nome, request.Descricao, request.Preco, request.SKU, request.LojaId, request.CategoriaId);
-                    produto.DefinirComoFisico(); // MÉTODO ESPECÍFICO
+                    produto.Altura = request.Altura.Value;
+                    produto.Largura = request.Largura.Value;
+                    produto.Profundidade = request.Profundidade.Value;
                 }
 
-                // POLIMORFISMO - Usando método Validar() que pode ter comportamentos diferentes
-                if (!produto.Validar())
-                {
-                    return BadRequest("Dados do produto inválidos");
-                }
-
-                _context.Produtos.Add(produto);
+                // 🔥 SALVAR APENAS O PRODUTO PRIMEIRO
+                _context.ProdutosFisicos.Add(produto);
                 await _context.SaveChangesAsync();
 
-                // Se for produto digital, criar registro na tabela específica
-                if (request.Tipo == "Digital" && !string.IsNullOrEmpty(request.UrlDownload))
-                {
-                    var produtoDigital = new ProdutoDigital(
-                        produto.Id,
-                        request.UrlDownload,
-                        request.TamanhoArquivoMB,
-                        request.FormatoArquivo
-                    );
-                    _context.ProdutosDigitais.Add(produtoDigital);
-                }
-
-                // Criar estoque (apenas para produtos físicos)
-                if (request.Tipo == "Fisico")
+                // 🔥 DEPOIS CRIAR ESTOQUE (se necessário)
+                if (request.QuantidadeEstoque > 0)
                 {
                     var estoque = new Estoque
                     {
-                        ProdutoId = produto.Id,
+                        ProdutoFisicoId = produto.Id,
                         QuantidadeDisponivel = request.QuantidadeEstoque,
                         QuantidadeReservada = 0,
                         PontoRepor = request.PontoRepor,
                         EstoqueMinimo = 5,
                         UltimoMovimento = DateTime.Now
                     };
+
                     _context.Estoques.Add(estoque);
+                    await _context.SaveChangesAsync();
                 }
 
-                await _context.SaveChangesAsync();
-
-                // POLIMORFISMO - Sistema de notificação (CORRIGIDO)
-                var emailService = new EmailService("admin@loja.com", $"Novo produto {produto.Tipo} cadastrado: {produto.Nome}");
-                var smsService = new SMSService("11999999999", $"Produto {produto.Nome} cadastrado com sucesso");
-
-                _notificacaoService.AdicionarNotificacao(emailService);
-                _notificacaoService.AdicionarNotificacao(smsService);
-
-                // OU usar os métodos de sobrecarga (alternativa)
-                _notificacaoService.AdicionarNotificacaoEmail("admin@loja.com", $"Novo produto {produto.Tipo} cadastrado: {produto.Nome}");
-                _notificacaoService.AdicionarNotificacaoSMS("11999999999", $"Produto {produto.Nome} cadastrado com sucesso");
-
-                var resultados = _notificacaoService.EnviarTodasNotificacoes();
-
-                Console.WriteLine("🔔 Notificações enviadas:");
-                foreach (var resultado in resultados)
+                // 🔥 RESPOSTA SIMPLES SEM CONSULTAS COMPLEXAS
+                return Ok(new
                 {
-                    Console.WriteLine($"   - {resultado}");
-                }
-
-                var response = new ProdutoResponseDTO
-                {
-                    Id = produto.Id,
+                    Message = "Produto criado com sucesso",
+                    ProdutoId = produto.Id,
                     Nome = produto.Nome,
-                    Descricao = produto.Descricao,
-                    Preco = produto.Preco,
-                    Peso = produto.Peso,
                     SKU = produto.SKU,
-                    Categoria = categoria.Nome,
-                    CategoriaId = categoria.Id,
-                    Loja = loja.Nome,
-                    LojaId = loja.Id,
-                    Estoque = request.Tipo == "Fisico" ? request.QuantidadeEstoque : 0,
-                    Ativo = produto.Ativo,
-                    DataCriacao = produto.DataCriacao,
-                    Tipo = produto.Tipo
-                };
-
-                return CreatedAtAction(nameof(GetProduto), new { id = produto.Id }, response);
+                    Preco = produto.Preco,
+                    EstoqueCriado = request.QuantidadeEstoque > 0
+                });
             }
             catch (Exception ex)
             {
+                // 🔥 LOG DETALHADO
+                Console.WriteLine($"🔴 ERRO NO POST: {ex.Message}");
+                Console.WriteLine($"🔴 STACK TRACE: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"🔴 INNER EXCEPTION: {ex.InnerException.Message}");
+                }
+
                 return StatusCode(500, $"Erro interno: {ex.Message}");
             }
         }
 
-        // PUT: api/produtos/5
-        [HttpPut("{id}")]
-        public async Task<ActionResult<ProdutoResponseDTO>> PutProduto(int id, [FromBody] ProdutoUpdateDTO request)
+        // GET: api/produtos/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ProdutoFisicoResponseDTO>> GetProdutoFisico(int id)
         {
             try
             {
-                var produto = await _context.Produtos
+                var produto = await _context.ProdutosFisicos
                     .Include(p => p.Categoria)
                     .Include(p => p.Loja)
                     .Include(p => p.Estoque)
-                    .FirstOrDefaultAsync(p => p.Id == id);
-
-                if (produto == null)
-                {
-                    return NotFound("Produto não encontrado");
-                }
-
-                // ENCAPSULAMENTO - Usando métodos para alterar propriedades
-                produto.AlterarNome(request.Nome);
-                produto.AlterarPreco(request.Preco);
-
-                // Alterar outras propriedades diretamente (poderia ter métodos também)
-                produto.Descricao = request.Descricao;
-                produto.Peso = request.Peso;
-                produto.SKU = request.SKU;
-                produto.Ativo = request.Ativo;
-
-                // Verificar se a categoria existe
-                var categoria = await _context.Categorias.FindAsync(request.CategoriaId);
-                if (categoria == null)
-                {
-                    return BadRequest("Categoria não encontrada");
-                }
-                produto.CategoriaId = request.CategoriaId;
-
-                await _context.SaveChangesAsync();
-
-                // Retornar resposta atualizada
-                var response = new ProdutoResponseDTO
-                {
-                    Id = produto.Id,
-                    Nome = produto.Nome,
-                    Descricao = produto.Descricao,
-                    Preco = produto.Preco,
-                    Peso = produto.Peso,
-                    SKU = produto.SKU,
-                    Categoria = categoria.Nome,
-                    CategoriaId = categoria.Id,
-                    Loja = produto.Loja.Nome,
-                    LojaId = produto.LojaId,
-                    Estoque = produto.Estoque?.QuantidadeDisponivel ?? 0,
-                    Ativo = produto.Ativo,
-                    DataCriacao = produto.DataCriacao,
-                    Tipo = produto.Tipo
-                };
-
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Erro interno: {ex.Message}");
-            }
-        }
-
-        // NOVO ENDPOINT: api/produtos/validos
-        [HttpGet("validos")]
-        public async Task<ActionResult<IEnumerable<ProdutoResponseDTO>>> GetProdutosValidos()
-        {
-            try
-            {
-                var produtos = await _context.Produtos
-                    .Where(p => p.Ativo)
-                    .Include(p => p.Categoria)
-                    .Include(p => p.Loja)
-                    .Include(p => p.Estoque)
-                    .ToListAsync();
-
-                // POLIMORFISMO - Filtrando usando método Validar()
-                var produtosValidos = produtos.Where(p => p.Validar())
-                    .Select(p => new ProdutoResponseDTO
+                    .Where(p => p.Id == id && p.Ativo)
+                    .Select(p => new ProdutoFisicoResponseDTO
                     {
                         Id = p.Id,
                         Nome = p.Nome,
                         Descricao = p.Descricao,
                         Preco = p.Preco,
+                        PrecoComImposto = p.CalcularPrecoComImposto(),
                         Peso = p.Peso,
                         SKU = p.SKU,
                         Categoria = p.Categoria.Nome,
                         CategoriaId = p.CategoriaId,
                         Loja = p.Loja.Nome,
                         LojaId = p.LojaId,
-                        Estoque = p.Estoque?.QuantidadeDisponivel ?? 0,
-                        Ativo = p.Ativo,
-                        DataCriacao = p.DataCriacao,
-                        Tipo = p.Tipo
+                        Dimensoes = p.ObterDimensoes(),
+                        Volume = p.CalcularVolume(),
+                        Estoque = p.Estoque != null ? p.Estoque.QuantidadeDisponivel : 0,
+                        PodeEnviar = p.PodeSerEnviado(),
+                        DataCriacao = p.DataCriacao
                     })
-                    .ToList();
+                    .FirstOrDefaultAsync();
 
-                return Ok(produtosValidos);
+                if (produto == null)
+                {
+                    return NotFound("Produto físico não encontrado");
+                }
+
+                return produto;
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Erro ao buscar produtos: {ex.Message}");
+                return StatusCode(500, $"Erro ao buscar produto físico: {ex.Message}");
             }
         }
 
-        // PUT: api/produtos/5/preco
-        [HttpPut("{id}/preco")]
-        public async Task<ActionResult> AtualizarPreco(int id, [FromBody] decimal novoPreco)
+        // DELETE: api/produtos/5/permanente
+        [HttpDelete("{id}/permanente")]
+        public async Task<ActionResult> DeleteProdutoFisicoPermanente(int id)
         {
             try
             {
-                var produto = await _context.Produtos.FindAsync(id);
+                var produto = await _context.ProdutosFisicos
+                    .Include(p => p.Estoque)
+                    .FirstOrDefaultAsync(p => p.Id == id);
+
+                if (produto == null)
+                {
+                    return NotFound("Produto físico não encontrado");
+                }
+
+                // 🔥 POLIMORFISMO - Validar antes de deletar
+                if (!produto.Validar())
+                {
+                    return BadRequest("Produto físico contém dados inválidos");
+                }
+
+                using var transaction = await _context.Database.BeginTransactionAsync();
+
+                try
+                {
+                    // Deletar estoque relacionado
+                    if (produto.Estoque != null)
+                    {
+                        _context.Estoques.Remove(produto.Estoque);
+                    }
+
+                    // Deletar itens do carrinho
+                    var itensCarrinho = await _context.CarrinhoItens
+                        .Where(ci => ci.ProdutoFisicoId == id) // 🔥 Agora referencia ProdutoFisico
+                        .ToListAsync();
+
+                    if (itensCarrinho.Any())
+                    {
+                        _context.CarrinhoItens.RemoveRange(itensCarrinho);
+                    }
+
+                    // Deletar produto físico
+                    _context.ProdutosFisicos.Remove(produto);
+                    await _context.SaveChangesAsync();
+
+                    await transaction.CommitAsync();
+
+                    return Ok(new
+                    {
+                        message = "Produto físico deletado permanentemente com sucesso",
+                        produtoId = id,
+                        produtoNome = produto.Nome
+                    });
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    throw new Exception($"Erro durante a transação: {ex.Message}", ex);
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro interno ao deletar produto físico: {ex.Message}");
+            }
+        }
+
+        // PUT: api/produtos/5/dimensoes
+        [HttpPut("{id}/dimensoes")]
+        public async Task<ActionResult> AtualizarDimensoes(int id, [FromBody] DimensoesDTO dimensoes)
+        {
+            try
+            {
+                var produto = await _context.ProdutosFisicos.FindAsync(id);
                 if (produto == null)
                     return NotFound();
 
-                // ENCAPSULAMENTO - Usando método para alterar preço com validação
-                produto.AlterarPreco(novoPreco);
+                // 🔥 ENCAPSULAMENTO - Usando método específico do ProdutoFisico
+                produto.DefinirDimensoes(dimensoes.Altura, dimensoes.Largura, dimensoes.Profundidade);
 
                 await _context.SaveChangesAsync();
 
-                return Ok(new { message = "Preço atualizado com sucesso" });
+                return Ok(new
+                {
+                    message = "Dimensões atualizadas com sucesso",
+                    dimensoes = produto.ObterDimensoes(),
+                    volume = produto.CalcularVolume()
+                });
             }
             catch (ArgumentException ex)
             {
@@ -357,104 +397,49 @@ namespace ProjetoEcommerce.Controllers
                 return StatusCode(500, $"Erro interno: {ex.Message}");
             }
         }
+    }
 
-        // GET: api/produtos/categoria/5
-        [HttpGet("categoria/{categoriaId}")]
-        public async Task<ActionResult<IEnumerable<ProdutoResponseDTO>>> GetProdutosPorCategoria(int categoriaId)
-        {
-            try
-            {
-                var produtos = await _context.Produtos
-                    .Where(p => p.CategoriaId == categoriaId && p.Ativo)
-                    .Include(p => p.Categoria)
-                    .Include(p => p.Loja)
-                    .Include(p => p.Estoque)
-                    .Select(p => new ProdutoResponseDTO
-                    {
-                        Id = p.Id,
-                        Nome = p.Nome,
-                        Descricao = p.Descricao,
-                        Preco = p.Preco,
-                        Peso = p.Peso,
-                        SKU = p.SKU,
-                        Categoria = p.Categoria.Nome,
-                        CategoriaId = p.CategoriaId,
-                        Loja = p.Loja.Nome,
-                        LojaId = p.LojaId,
-                        Estoque = p.Estoque != null ? p.Estoque.QuantidadeDisponivel : 0,
-                        Ativo = p.Ativo,
-                        DataCriacao = p.DataCriacao,
-                        Tipo = p.Tipo
-                    })
-                    .ToListAsync();
+    // 🔥 DTOs ESPECÍFICOS para ProdutoFisico
+    public class ProdutoFisicoDTO
+    {
+        public string Nome { get; set; }
+        public string Descricao { get; set; }
+        public decimal Preco { get; set; }
+        public decimal? Peso { get; set; }
+        public string SKU { get; set; }
+        public int LojaId { get; set; }
+        public int CategoriaId { get; set; }
+        public int QuantidadeEstoque { get; set; }
+        public int PontoRepor { get; set; } = 0;
+        public decimal? Altura { get; set; }
+        public decimal? Largura { get; set; }
+        public decimal? Profundidade { get; set; }
+    }
 
-                return Ok(produtos);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Erro ao buscar produtos: {ex.Message}");
-            }
-        }
+    public class ProdutoFisicoResponseDTO
+    {
+        public int Id { get; set; }
+        public string Nome { get; set; }
+        public string Descricao { get; set; }
+        public decimal Preco { get; set; }
+        public decimal PrecoComImposto { get; set; }
+        public decimal? Peso { get; set; }
+        public string SKU { get; set; }
+        public string Categoria { get; set; }
+        public int CategoriaId { get; set; }
+        public string Loja { get; set; }
+        public int LojaId { get; set; }
+        public string Dimensoes { get; set; }
+        public decimal? Volume { get; set; }
+        public int Estoque { get; set; }
+        public bool PodeEnviar { get; set; }
+        public DateTime DataCriacao { get; set; }
+    }
 
-        // GET: api/produtos/digitais
-        [HttpGet("digitais")]
-        public async Task<ActionResult<IEnumerable<ProdutoResponseDTO>>> GetProdutosDigitais()
-        {
-            try
-            {
-                var produtos = await _context.Produtos
-                    .Where(p => p.Tipo == "Digital" && p.Ativo)
-                    .Include(p => p.Categoria)
-                    .Include(p => p.Loja)
-                    .Select(p => new ProdutoResponseDTO
-                    {
-                        Id = p.Id,
-                        Nome = p.Nome,
-                        Descricao = p.Descricao,
-                        Preco = p.Preco,
-                        SKU = p.SKU,
-                        Categoria = p.Categoria.Nome,
-                        CategoriaId = p.CategoriaId,
-                        Loja = p.Loja.Nome,
-                        LojaId = p.LojaId,
-                        Ativo = p.Ativo,
-                        DataCriacao = p.DataCriacao,
-                        Tipo = p.Tipo
-                    })
-                    .ToListAsync();
-
-                return Ok(produtos);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Erro ao buscar produtos digitais: {ex.Message}");
-            }
-        }
-
-        // DELETE: api/produtos/5
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteProduto(int id)
-        {
-            try
-            {
-                var produto = await _context.Produtos.FindAsync(id);
-                if (produto == null)
-                {
-                    return NotFound("Produto não encontrado");
-                }
-
-                // Soft delete
-                produto.Ativo = false;
-                produto.DataAtualizacao = DateTime.Now;
-
-                await _context.SaveChangesAsync();
-
-                return Ok(new { message = "Produto desativado com sucesso" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Erro interno: {ex.Message}");
-            }
-        }
+    public class DimensoesDTO
+    {
+        public decimal Altura { get; set; }
+        public decimal Largura { get; set; }
+        public decimal Profundidade { get; set; }
     }
 }

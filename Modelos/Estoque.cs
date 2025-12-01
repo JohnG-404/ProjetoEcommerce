@@ -3,54 +3,17 @@
     public class Estoque
     {
         public int Id { get; set; }
-        public int ProdutoId { get; set; }
+        public int ProdutoFisicoId { get; set; }
         public int QuantidadeDisponivel { get; set; }
-        public int QuantidadeReservada { get; set; } // NOVA PROPRIEDADE
+        public int QuantidadeReservada { get; set; }
         public int PontoRepor { get; set; }
-        public int EstoqueMinimo { get; set; } // NOVA PROPRIEDADE
+        public int EstoqueMinimo { get; set; }
         public DateTime? UltimoMovimento { get; set; }
 
         // Propriedade de navegação
-        public virtual Produto Produto { get; set; }
+        public virtual ProdutoFisico ProdutoFisico { get; set; }
 
-        // ENCAPSULAMENTO - Métodos para gerenciar estoque
-        public bool TemEstoqueSuficiente(int quantidade)
-        {
-            return (QuantidadeDisponivel - QuantidadeReservada) >= quantidade;
-        }
-
-        public int EstoqueReal()
-        {
-            return QuantidadeDisponivel - QuantidadeReservada;
-        }
-
-        public void Reservar(int quantidade)
-        {
-            if (!TemEstoqueSuficiente(quantidade))
-                throw new InvalidOperationException("Estoque insuficiente para reserva");
-
-            QuantidadeReservada += quantidade;
-            UltimoMovimento = DateTime.Now;
-        }
-
-        public void LiberarReserva(int quantidade)
-        {
-            if (QuantidadeReservada < quantidade)
-                throw new InvalidOperationException("Quantidade de reserva a liberar é maior que a reservada");
-
-            QuantidadeReservada -= quantidade;
-            UltimoMovimento = DateTime.Now;
-        }
-
-        public void BaixarEstoque(int quantidade)
-        {
-            if (!TemEstoqueSuficiente(quantidade))
-                throw new InvalidOperationException("Estoque insuficiente para baixa");
-
-            QuantidadeDisponivel -= quantidade;
-            UltimoMovimento = DateTime.Now;
-        }
-
+        // MÉTODOS QUE ESTAVAM FALTANDO:
         public void AdicionarEstoque(int quantidade)
         {
             if (quantidade <= 0)
@@ -60,28 +23,66 @@
             UltimoMovimento = DateTime.Now;
         }
 
-        // POLIMORFISMO - Método virtual que pode ser sobrescrito
-        public virtual bool PrecisaRepor()
+        public void BaixarEstoque(int quantidade)
         {
-            return EstoqueReal() <= PontoRepor;
+            if (quantidade <= 0)
+                throw new ArgumentException("Quantidade deve ser maior que zero");
+
+            if (QuantidadeDisponivel < quantidade)
+                throw new InvalidOperationException("Estoque insuficiente");
+
+            QuantidadeDisponivel -= quantidade;
+            UltimoMovimento = DateTime.Now;
         }
 
-        // SOBRECARGA DE MÉTODOS
+        public void Reservar(int quantidade)
+        {
+            if (quantidade <= 0)
+                throw new ArgumentException("Quantidade deve ser maior que zero");
+
+            if (QuantidadeDisponivel - QuantidadeReservada < quantidade)
+                throw new InvalidOperationException("Estoque disponível insuficiente para reserva");
+
+            QuantidadeReservada += quantidade;
+            UltimoMovimento = DateTime.Now;
+        }
+
+        public void LiberarReserva(int quantidade)
+        {
+            if (quantidade <= 0)
+                throw new ArgumentException("Quantidade deve ser maior que zero");
+
+            if (QuantidadeReservada < quantidade)
+                throw new InvalidOperationException("Quantidade de reserva insuficiente");
+
+            QuantidadeReservada -= quantidade;
+            UltimoMovimento = DateTime.Now;
+        }
+
         public string StatusEstoque()
         {
             var estoqueReal = EstoqueReal();
             if (estoqueReal <= EstoqueMinimo)
-                return "CRÍTICO";
-            else if (estoqueReal <= PontoRepor)
-                return "ALERTA";
-            else
-                return "NORMAL";
+                return "Crítico";
+            if (estoqueReal <= PontoRepor)
+                return "Atenção";
+            return "Normal";
         }
 
-        public string StatusEstoque(bool incluirQuantidade)
+        public bool PrecisaRepor()
         {
-            var status = StatusEstoque();
-            return incluirQuantidade ? $"{status} ({EstoqueReal()} unidades)" : status;
+            return EstoqueReal() <= PontoRepor;
+        }
+
+        // MÉTODOS EXISTENTES:
+        public bool TemEstoqueSuficiente(int quantidade)
+        {
+            return (QuantidadeDisponivel - QuantidadeReservada) >= quantidade;
+        }
+
+        public int EstoqueReal()
+        {
+            return QuantidadeDisponivel - QuantidadeReservada;
         }
     }
 }

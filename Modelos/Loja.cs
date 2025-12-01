@@ -7,15 +7,16 @@
         public string Descricao { get; set; }
         public string CNPJ { get; set; }
         public string Telefone { get; set; }
+        public string Email { get; set; }
         public int? EnderecoId { get; set; }
-        // REMOVER: public int? CaixaId { get; set; } // Esta linha não deve existir
-        public bool Ativo { get; set; }
+        public bool Ativo { get; set; } = true;
         public DateTime DataCriacao { get; set; }
+        public DateTime? DataAtualizacao { get; set; }
 
-        // Propriedades de navegação
+        // 🔥 ATUALIZADO - Agora referencia ProdutoBase
         public virtual Endereco Endereco { get; set; }
-        public virtual Caixa Caixa { get; set; } // Relacionamento 1:1, mas sem CaixaId na Loja
-        public virtual ICollection<Produto> Produtos { get; set; } = new List<Produto>();
+        public virtual Caixa Caixa { get; set; }
+        public virtual ICollection<ProdutoBase> ProdutosBase { get; set; } = new List<ProdutoBase>();
         public virtual ICollection<Pedido> Pedidos { get; set; } = new List<Pedido>();
     }
 }

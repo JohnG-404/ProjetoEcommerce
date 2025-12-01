@@ -6,13 +6,13 @@
         public int LojaId { get; set; }
         public decimal SaldoAtual { get; set; }
         public string Status { get; set; } = "Aberto"; // "Aberto" ou "Fechado"
-        public DateTime DataAbertura { get; set; } // NOVA PROPRIEDADE
-        public DateTime? DataFechamento { get; set; } // NOVA PROPRIEDADE
-        public decimal SaldoInicial { get; set; } // NOVA PROPRIEDADE
+        public DateTime DataAbertura { get; set; }
+        public DateTime? DataFechamento { get; set; }
+        public decimal SaldoInicial { get; set; }
 
         // Propriedades de navegação
         public virtual Loja Loja { get; set; }
-        public virtual ICollection<Transacao> Transacoes { get; set; } = new List<Transacao>();
+        public virtual ICollection<Transacao> Transacoes { get; set; } = new List<Transacao>(); // ADICIONADO
 
         // ENCAPSULAMENTO - Construtor
         public Caixa()

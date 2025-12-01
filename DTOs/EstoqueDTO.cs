@@ -2,7 +2,7 @@
 {
     public class EstoqueDTO
     {
-        public int ProdutoId { get; set; }
+        public int ProdutoFisicoId { get; set; }
         public int QuantidadeDisponivel { get; set; }
         public int PontoRepor { get; set; }
         public int EstoqueMinimo { get; set; }

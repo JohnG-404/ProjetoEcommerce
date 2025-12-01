@@ -1,41 +1,63 @@
-﻿namespace ProjetoEcommerce.Modelos
-{
-    public abstract class ProdutoBase : EntidadeBase
-    {
-        public string Nome { get; protected set; }
-        public string Descricao { get; protected set; }
-        public decimal Preco { get; protected set; }
-        public decimal? Peso { get; protected set; }
-        public string SKU { get; protected set; }
+﻿using System.ComponentModel.DataAnnotations;
 
-        protected ProdutoBase(string nome, string descricao, decimal preco, string sku)
+namespace ProjetoEcommerce.Modelos
+{
+    public abstract class ProdutoBase
+    {
+        public int Id { get; set; }
+        public string Nome { get; set; } = string.Empty;
+        public string Descricao { get; set; } = string.Empty;
+        public decimal Preco { get; set; }
+        public string SKU { get; set; } = string.Empty;
+        public int LojaId { get; set; }
+        public int CategoriaId { get; set; }
+        public bool Ativo { get; set; } = true;
+        public DateTime DataCriacao { get; set; }
+        public DateTime? DataAtualizacao { get; set; }
+
+        // Propriedades de navegação
+        public virtual Loja? Loja { get; set; }
+        public virtual Categoria? Categoria { get; set; }
+
+        // Construtor padrão
+        public ProdutoBase()
+        {
+            DataCriacao = DateTime.Now;
+        }
+
+        // Construtor com parâmetros
+        public ProdutoBase(string nome, string descricao, decimal preco, string sku, int lojaId, int categoriaId)
         {
             Nome = nome ?? throw new ArgumentNullException(nameof(nome));
-            Descricao = descricao ?? throw new ArgumentNullException(nameof(descricao));
+            Descricao = descricao ?? string.Empty;
             Preco = preco >= 0 ? preco : throw new ArgumentException("Preço não pode ser negativo");
             SKU = sku ?? throw new ArgumentNullException(nameof(sku));
+            LojaId = lojaId > 0 ? lojaId : throw new ArgumentException("LojaId inválido");
+            CategoriaId = categoriaId > 0 ? categoriaId : throw new ArgumentException("CategoriaId inválido");
+            DataCriacao = DateTime.Now;
+            Ativo = true;
         }
 
-        // ENCAPSULAMENTO - Métodos para modificar propriedades com validação
-        public virtual void AlterarPreco(decimal novoPreco)
+        public abstract string ObterTipoProduto();
+
+        public virtual bool Validar()
         {
-            if (novoPreco < 0)
-                throw new ArgumentException("Preço não pode ser negativo");
-
-            Preco = novoPreco;
-            Atualizar();
+            return !string.IsNullOrWhiteSpace(Nome) &&
+                   !string.IsNullOrWhiteSpace(SKU) &&
+                   Preco >= 0 &&
+                   LojaId > 0 &&
+                   CategoriaId > 0;
         }
 
-        public virtual void AlterarNome(string novoNome)
+        // 🔥 ADICIONAR MÉTODO Atualizar
+        public void Atualizar()
         {
-            if (string.IsNullOrWhiteSpace(novoNome))
-                throw new ArgumentException("Nome não pode ser vazio");
-
-            Nome = novoNome.Trim();
-            Atualizar();
+            DataAtualizacao = DateTime.Now;
         }
 
-        // POLIMORFISMO - Método abstrato implementado nas classes derivadas
-        public override abstract bool Validar();
+        public virtual decimal CalcularPrecoComImposto()
+        {
+            return Preco * 1.1m;
+        }
     }
 }

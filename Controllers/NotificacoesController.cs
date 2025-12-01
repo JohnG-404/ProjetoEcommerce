@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProjetoEcommerce.Interfaces;
+using ProjetoEcommerce.DTOs;
 using ProjetoEcommerce.Services;
 
 namespace ProjetoEcommerce.Controllers
@@ -92,11 +93,5 @@ namespace ProjetoEcommerce.Controllers
 
             return Ok(servicos);
         }
-    }
-
-    public class NotificacaoRequest
-    {
-        public string Destinatario { get; set; }
-        public string Mensagem { get; set; }
     }
 }

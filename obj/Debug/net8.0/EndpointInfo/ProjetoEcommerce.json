@@ -28,6 +28,119 @@
         }
       }
     },
+    "/api/Caixa/loja/{lojaId}/abrir": {
+      "post": {
+        "tags": [
+          "Caixa"
+        ],
+        "parameters": [
+          {
+            "name": "lojaId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "number",
+                "format": "double",
+                "default": 0
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "number",
+                "format": "double",
+                "default": 0
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "number",
+                "format": "double",
+                "default": 0
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Caixa/loja/{lojaId}/fechar": {
+      "post": {
+        "tags": [
+          "Caixa"
+        ],
+        "parameters": [
+          {
+            "name": "lojaId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Caixa/loja/{lojaId}/transacao": {
+      "post": {
+        "tags": [
+          "Caixa"
+        ],
+        "parameters": [
+          {
+            "name": "lojaId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransacaoRequestDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransacaoRequestDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransacaoRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/Carrinho/{clienteId}": {
       "get": {
         "tags": [
@@ -2550,6 +2663,36 @@
           "dataCriacao": {
             "type": "string",
             "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TransacaoRequestDTO": {
+        "type": "object",
+        "properties": {
+          "tipo": {
+            "type": "string",
+            "nullable": true
+          },
+          "categoria": {
+            "type": "string",
+            "nullable": true
+          },
+          "valor": {
+            "type": "number",
+            "format": "double"
+          },
+          "descricao": {
+            "type": "string",
+            "nullable": true
+          },
+          "metodoPagamento": {
+            "type": "string",
+            "nullable": true
+          },
+          "observacao": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ProjetoEcommerce.DTOs;
 using ProjetoEcommerce.Modelos;
 using ProjetoEcommerce.Services;
 
@@ -241,40 +242,4 @@ namespace ProjetoEcommerce.Controllers
         }
     }
 
-    // 🔥 DTOs ATUALIZADOS
-    public class ProdutoDigitalDTO
-    {
-        public string Nome { get; set; } = string.Empty;
-        public string Descricao { get; set; } = string.Empty;
-        public decimal Preco { get; set; }
-        public string SKU { get; set; } = string.Empty;
-        public int LojaId { get; set; }
-        public int CategoriaId { get; set; }
-        public string UrlDownload { get; set; } = string.Empty;
-        public decimal TamanhoArquivoMB { get; set; }
-        public string FormatoArquivo { get; set; } = string.Empty;
-        public int LimiteDownloads { get; set; } = 3;
-        public DateTime? DataExpiracao { get; set; }
-    }
-
-    public class ProdutoDigitalResponseDTO
-    {
-        public int Id { get; set; }
-        public string Nome { get; set; } = string.Empty;
-        public string Descricao { get; set; } = string.Empty;
-        public decimal Preco { get; set; }
-        public decimal PrecoComImposto { get; set; }
-        public string SKU { get; set; } = string.Empty;
-        public string Categoria { get; set; } = string.Empty;
-        public string Loja { get; set; } = string.Empty;
-        public string UrlDownload { get; set; } = string.Empty;
-        public decimal TamanhoArquivoMB { get; set; }
-        public string FormatoArquivo { get; set; } = string.Empty;
-        public int LimiteDownloads { get; set; }
-        public string ChaveLicenca { get; set; } = string.Empty;
-        public DateTime? DataExpiracao { get; set; }
-        public DateTime DataCriacao { get; set; }
-        public bool LinkValido { get; set; }
-        public string InfoDownload { get; set; } = string.Empty;
-    }
 }

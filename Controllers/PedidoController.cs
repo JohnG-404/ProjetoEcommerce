@@ -559,10 +559,5 @@ namespace ProjetoEcommerce.Controllers
         }
     }
 
-    // 🔥 DTOs ESPECÍFICOS para Pedidos (externos)
-}
-
-public class AtualizarPagamentoDTO
-{
-    public string Status { get; set; }
+    
 }

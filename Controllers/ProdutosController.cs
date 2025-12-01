@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProjetoEcommerce.Modelos;
+using ProjetoEcommerce.DTOs;
 using ProjetoEcommerce.Services;
 
 namespace ProjetoEcommerce.Controllers
@@ -400,46 +401,4 @@ namespace ProjetoEcommerce.Controllers
     }
 
     // 🔥 DTOs ESPECÍFICOS para ProdutoFisico
-    public class ProdutoFisicoDTO
-    {
-        public string Nome { get; set; }
-        public string Descricao { get; set; }
-        public decimal Preco { get; set; }
-        public decimal? Peso { get; set; }
-        public string SKU { get; set; }
-        public int LojaId { get; set; }
-        public int CategoriaId { get; set; }
-        public int QuantidadeEstoque { get; set; }
-        public int PontoRepor { get; set; } = 0;
-        public decimal? Altura { get; set; }
-        public decimal? Largura { get; set; }
-        public decimal? Profundidade { get; set; }
-    }
-
-    public class ProdutoFisicoResponseDTO
-    {
-        public int Id { get; set; }
-        public string Nome { get; set; }
-        public string Descricao { get; set; }
-        public decimal Preco { get; set; }
-        public decimal PrecoComImposto { get; set; }
-        public decimal? Peso { get; set; }
-        public string SKU { get; set; }
-        public string Categoria { get; set; }
-        public int CategoriaId { get; set; }
-        public string Loja { get; set; }
-        public int LojaId { get; set; }
-        public string Dimensoes { get; set; }
-        public decimal? Volume { get; set; }
-        public int Estoque { get; set; }
-        public bool PodeEnviar { get; set; }
-        public DateTime DataCriacao { get; set; }
-    }
-
-    public class DimensoesDTO
-    {
-        public decimal Altura { get; set; }
-        public decimal Largura { get; set; }
-        public decimal Profundidade { get; set; }
-    }
 }

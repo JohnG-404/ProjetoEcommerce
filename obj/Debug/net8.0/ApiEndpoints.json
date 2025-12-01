@@ -32,6 +32,64 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "ProjetoEcommerce.Controllers.CaixaController",
+    "Method": "AbrirCaixa",
+    "RelativePath": "api/Caixa/loja/{lojaId}/abrir",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "lojaId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "saldoInicial",
+        "Type": "System.Decimal",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ProjetoEcommerce.Controllers.CaixaController",
+    "Method": "FecharCaixa",
+    "RelativePath": "api/Caixa/loja/{lojaId}/fechar",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "lojaId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ProjetoEcommerce.Controllers.CaixaController",
+    "Method": "AdicionarTransacao",
+    "RelativePath": "api/Caixa/loja/{lojaId}/transacao",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "lojaId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "ProjetoEcommerce.DTOs.TransacaoRequestDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "ProjetoEcommerce.Controllers.CarrinhoController",
     "Method": "GetCarrinho",
     "RelativePath": "api/Carrinho/{clienteId}",
@@ -47,7 +105,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "ProjetoEcommerce.Controllers.CarrinhoResponseDTO",
+        "Type": "ProjetoEcommerce.DTOs.CarrinhoResponseDTO",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -67,7 +125,7 @@
     "Parameters": [
       {
         "Name": "request",
-        "Type": "ProjetoEcommerce.Controllers.AdicionarItemRequestDTO",
+        "Type": "ProjetoEcommerce.DTOs.AdicionarItemRequestDTO",
         "IsRequired": true
       }
     ],
@@ -212,13 +270,13 @@
     "Parameters": [
       {
         "Name": "estoqueDto",
-        "Type": "ProjetoEcommerce.Controllers.EstoqueDTO",
+        "Type": "ProjetoEcommerce.DTOs.EstoqueDTO",
         "IsRequired": true
       }
     ],
     "ReturnTypes": [
       {
-        "Type": "ProjetoEcommerce.Controllers.EstoqueResponseDTO",
+        "Type": "ProjetoEcommerce.DTOs.EstoqueResponseDTO",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -243,7 +301,7 @@
       },
       {
         "Name": "ajuste",
-        "Type": "ProjetoEcommerce.Controllers.AjusteEstoqueDTO",
+        "Type": "ProjetoEcommerce.DTOs.AjusteEstoqueDTO",
         "IsRequired": true
       }
     ],
@@ -280,7 +338,7 @@
     "Parameters": [],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.IEnumerable\u00601[[ProjetoEcommerce.Controllers.EstoqueAlertaDTO, ProjetoEcommerce, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[ProjetoEcommerce.DTOs.EstoqueAlertaDTO, ProjetoEcommerce, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -388,7 +446,7 @@
     "Parameters": [
       {
         "Name": "request",
-        "Type": "ProjetoEcommerce.Controllers.NotificacaoRequest",
+        "Type": "ProjetoEcommerce.DTOs.NotificacaoRequest",
         "IsRequired": true
       }
     ],
@@ -414,7 +472,7 @@
     "Parameters": [
       {
         "Name": "request",
-        "Type": "ProjetoEcommerce.Controllers.NotificacaoRequest",
+        "Type": "ProjetoEcommerce.DTOs.NotificacaoRequest",
         "IsRequired": true
       }
     ],
@@ -533,7 +591,7 @@
       },
       {
         "Name": "request",
-        "Type": "AtualizarPagamentoDTO",
+        "Type": "ProjetoEcommerce.DTOs.AtualizarPagamentoDTO",
         "IsRequired": true
       }
     ],
@@ -616,7 +674,7 @@
     "Parameters": [
       {
         "Name": "request",
-        "Type": "ProjetoEcommerce.Controllers.ProdutoFisicoDTO",
+        "Type": "ProjetoEcommerce.DTOs.ProdutoFisicoDTO",
         "IsRequired": true
       }
     ],
@@ -638,7 +696,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "ProjetoEcommerce.Controllers.ProdutoFisicoResponseDTO",
+        "Type": "ProjetoEcommerce.DTOs.ProdutoFisicoResponseDTO",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -663,7 +721,7 @@
       },
       {
         "Name": "dimensoes",
-        "Type": "ProjetoEcommerce.Controllers.DimensoesDTO",
+        "Type": "ProjetoEcommerce.DTOs.DimensoesDTO",
         "IsRequired": true
       }
     ],
@@ -695,7 +753,7 @@
     "Parameters": [
       {
         "Name": "request",
-        "Type": "ProjetoEcommerce.Controllers.ProdutoFisicoDTO",
+        "Type": "ProjetoEcommerce.DTOs.ProdutoFisicoDTO",
         "IsRequired": true
       }
     ],
@@ -793,7 +851,7 @@
     "Parameters": [
       {
         "Name": "request",
-        "Type": "ProjetoEcommerce.Controllers.ProdutoDigitalDTO",
+        "Type": "ProjetoEcommerce.DTOs.ProdutoDigitalDTO",
         "IsRequired": true
       }
     ],
@@ -815,7 +873,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "ProjetoEcommerce.Controllers.ProdutoDigitalResponseDTO",
+        "Type": "ProjetoEcommerce.DTOs.ProdutoDigitalResponseDTO",
         "MediaTypes": [
           "text/plain",
           "application/json",

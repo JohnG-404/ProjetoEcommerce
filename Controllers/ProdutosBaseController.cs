@@ -14,7 +14,7 @@ namespace ProjetoEcommerce.Controllers
         {
             _context = context;
         }
-        // 🔥 DEBUG PARA PRODUTOS BASE
+      
         [HttpGet("debug")]
         public async Task<ActionResult> DebugProdutosBase()
         {
@@ -22,7 +22,7 @@ namespace ProjetoEcommerce.Controllers
             {
                 var debugInfo = new List<object>();
 
-                // Testar consulta básica da tabela base
+                
                 var produtosBase = await _context.ProdutosBase
                     .Take(5)
                     .ToListAsync();
@@ -52,19 +52,18 @@ namespace ProjetoEcommerce.Controllers
                 return StatusCode(500, $"Debug Error: {ex.Message}\n{ex.StackTrace}");
             }
         }
-        // GET: api/produtos-base - LISTAR TODOS OS PRODUTOS (FÍSICOS E DIGITAIS)
-        // GET: api/produtos-base - LISTAR TODOS OS PRODUTOS (FÍSICOS E DIGITAIS)
+       
         [HttpGet]
         public async Task<ActionResult<IEnumerable<object>>> GetTodosProdutos()
         {
             try
             {
-                // 🔥 USAR O MESMO CÓDIGO SEGURO DO DEBUG
+                
                 var debugInfo = new List<object>();
 
-                // Testar consulta básica da tabela base
+                
                 var produtosBase = await _context.ProdutosBase
-                    .Take(50) // Limitar para teste
+                    .Take(50) 
                     .ToListAsync();
 
                 foreach (var p in produtosBase)
@@ -78,7 +77,7 @@ namespace ProjetoEcommerce.Controllers
                         Preco = p.Preco,
                         LojaId = p.LojaId,
                         CategoriaId = p.CategoriaId,
-                        Tipo = "Base" // Identificar que veio da tabela base
+                        Tipo = "Base" 
                     });
                 }
 
@@ -95,13 +94,11 @@ namespace ProjetoEcommerce.Controllers
             }
         }
 
-        // GET: api/produtos-base/5 - BUSCAR PRODUTO POR ID (QUALQUER TIPO)
         [HttpGet("{id}")]
         public async Task<ActionResult<object>> GetProduto(int id)
         {
             try
             {
-                // 🔥 CORREÇÃO: Buscar produto físico com tratamento de NULL
                 var produtoFisico = await _context.ProdutosFisicos
                     .Include(p => p.Loja)
                     .Include(p => p.Categoria)
@@ -129,7 +126,6 @@ namespace ProjetoEcommerce.Controllers
                     });
                 }
 
-                // 🔥 CORREÇÃO: Buscar produto digital com tratamento de NULL
                 var produtoDigital = await _context.ProdutosDigitais
                     .Include(p => p.Loja)
                     .Include(p => p.Categoria)
@@ -166,13 +162,11 @@ namespace ProjetoEcommerce.Controllers
             }
         }
 
-        // POST: api/produtos-base/calcular-imposto - DEMONSTRAR POLIMORFISMO
         [HttpPost("calcular-imposto")]
         public ActionResult CalcularImposto([FromBody] List<int> produtosIds)
         {
             try
             {
-                // 🔥 POLIMORFISMO - Simulação com objetos em memória
                 var produtos = new List<ProdutoBase>
                 {
                     new ProdutoFisico
@@ -192,7 +186,6 @@ namespace ProjetoEcommerce.Controllers
 
                 foreach (var produto in produtos)
                 {
-                    // 🔥 POLIMORFISMO - Mesmo método, comportamentos diferentes
                     var imposto = produto.CalcularPrecoComImposto();
 
                     resultados.Add(new

@@ -15,7 +15,6 @@
         public string CEP { get; set; }
         public string Pais { get; set; } = "BR";
 
-        // Propriedades de navegação
         public virtual Usuario Usuario { get; set; }
         public virtual Loja Loja { get; set; }
         public virtual ICollection<Pedido> PedidosEntrega { get; set; }

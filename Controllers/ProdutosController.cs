@@ -18,8 +18,6 @@ namespace ProjetoEcommerce.Controllers
             _context = context;
             _notificacaoService = notificacaoService;
         }
-        // 🔥 DEBUG DO POST
-        // 🔥 DEBUG DO POST MAIS DETALHADO
         [HttpPost("debug-stepbystep")]
         public async Task<ActionResult> DebugPostStepByStep([FromBody] ProdutoFisicoDTO request)
         {
@@ -27,7 +25,6 @@ namespace ProjetoEcommerce.Controllers
             {
                 var debugSteps = new List<object>();
 
-                // 🔥 PASSO 1: Validar dados básicos
                 debugSteps.Add(new { Step = "1. Validação Dados", Status = "Iniciada", Data = request });
 
                 if (string.IsNullOrWhiteSpace(request.Nome))
@@ -38,7 +35,6 @@ namespace ProjetoEcommerce.Controllers
 
                 debugSteps.Add(new { Step = "1. Validação Dados", Status = "Concluída" });
 
-                // 🔥 PASSO 2: Consulta SIMPLES da Loja (sem includes)
                 debugSteps.Add(new { Step = "2. Consulta Loja", Status = "Iniciada", LojaId = request.LojaId });
 
                 var loja = await _context.Lojas
@@ -48,7 +44,6 @@ namespace ProjetoEcommerce.Controllers
 
                 debugSteps.Add(new { Step = "2. Consulta Loja", Status = loja != null ? "Encontrada" : "Não encontrada", Loja = loja });
 
-                // 🔥 PASSO 3: Consulta SIMPLES da Categoria (sem includes)  
                 debugSteps.Add(new { Step = "3. Consulta Categoria", Status = "Iniciada", CategoriaId = request.CategoriaId });
 
                 var categoria = await _context.Categorias
@@ -58,7 +53,6 @@ namespace ProjetoEcommerce.Controllers
 
                 debugSteps.Add(new { Step = "3. Consulta Categoria", Status = categoria != null ? "Encontrada" : "Não encontrada", Categoria = categoria });
 
-                // 🔥 PASSO 4: Consulta SIMPLES do SKU (sem includes)
                 debugSteps.Add(new { Step = "4. Verificar SKU", Status = "Iniciada", SKU = request.SKU });
 
                 var skuExistente = await _context.ProdutosBase
@@ -68,7 +62,6 @@ namespace ProjetoEcommerce.Controllers
 
                 debugSteps.Add(new { Step = "4. Verificar SKU", Status = skuExistente ? "Já existe" : "Disponível" });
 
-                // 🔥 PASSO 5: Criar produto (apenas em memória)
                 debugSteps.Add(new { Step = "5. Criar Produto", Status = "Iniciada" });
 
                 var produto = new ProdutoFisico
@@ -101,37 +94,30 @@ namespace ProjetoEcommerce.Controllers
                 });
             }
         }
-        // GET: api/produtos - APENAS PRODUTOS FÍSICOS
         [HttpGet]
         public async Task<ActionResult<IEnumerable<object>>> GetProdutosFisicos()
         {
             try
             {
-                // 🔥 CONSULTA MAIS SIMPLES E SEGURA
                 var produtos = await _context.ProdutosFisicos
                     .Where(p => p.Ativo)
                     .Select(p => new
                     {
-                        // 🔥 PROPRIEDADES BÁSICAS PRIMEIRO
                         p.Id,
                         p.Nome,
                         Descricao = p.Descricao ?? "",
                         p.Preco,
                         p.SKU,
 
-                        // 🔥 PROPRIEDADES CALCULADAS
                         PrecoComImposto = p.CalcularPrecoComImposto(),
 
-                        // 🔥 RELACIONAMENTOS COM VERIFICAÇÃO
                         Categoria = p.Categoria != null ? p.Categoria.Nome : "",
                         Loja = p.Loja != null ? p.Loja.Nome : "",
 
-                        // 🔥 PROPRIEDADES ESPECÍFICAS
                         Peso = p.Peso,
                         Dimensoes = p.ObterDimensoes(),
                         Volume = p.CalcularVolume(),
 
-                        // 🔥 ESTOQUE COM VERIFICAÇÃO
                         Estoque = p.Estoque != null ? p.Estoque.QuantidadeDisponivel : 0,
 
                         PodeEnviar = p.PodeSerEnviado(),
@@ -143,7 +129,6 @@ namespace ProjetoEcommerce.Controllers
             }
             catch (Exception ex)
             {
-                // 🔥 LOG DETALHADO
                 Console.WriteLine($"🔴 ERRO DETALHADO: {ex.Message}");
                 Console.WriteLine($"🔴 STACK TRACE: {ex.StackTrace}");
 
@@ -161,7 +146,6 @@ namespace ProjetoEcommerce.Controllers
         {
             try
             {
-                // 🔥 VALIDAÇÃO BÁSICA (já testada no debug)
                 if (string.IsNullOrWhiteSpace(request.Nome))
                     return BadRequest("Nome é obrigatório");
 
@@ -177,7 +161,6 @@ namespace ProjetoEcommerce.Controllers
                 if (request.CategoriaId <= 0)
                     return BadRequest("CategoriaId inválido");
 
-                // 🔥 VERIFICAÇÕES SIMPLES (já testadas no debug)
                 var lojaExiste = await _context.Lojas.AnyAsync(l => l.Id == request.LojaId);
                 if (!lojaExiste)
                     return BadRequest("Loja não encontrada");
@@ -190,7 +173,6 @@ namespace ProjetoEcommerce.Controllers
                 if (skuExistente)
                     return BadRequest("SKU já cadastrado");
 
-                // 🔥 CRIAR PRODUTO DE FORMA SEGURA
                 var produto = new ProdutoFisico
                 {
                     Nome = request.Nome.Trim(),
@@ -202,7 +184,6 @@ namespace ProjetoEcommerce.Controllers
                     Peso = request.Peso
                 };
 
-                // Definir dimensões se fornecidas
                 if (request.Altura.HasValue && request.Largura.HasValue && request.Profundidade.HasValue)
                 {
                     produto.Altura = request.Altura.Value;
@@ -210,11 +191,9 @@ namespace ProjetoEcommerce.Controllers
                     produto.Profundidade = request.Profundidade.Value;
                 }
 
-                // 🔥 SALVAR APENAS O PRODUTO PRIMEIRO
                 _context.ProdutosFisicos.Add(produto);
                 await _context.SaveChangesAsync();
 
-                // 🔥 DEPOIS CRIAR ESTOQUE (se necessário)
                 if (request.QuantidadeEstoque > 0)
                 {
                     var estoque = new Estoque
@@ -231,7 +210,6 @@ namespace ProjetoEcommerce.Controllers
                     await _context.SaveChangesAsync();
                 }
 
-                // 🔥 RESPOSTA SIMPLES SEM CONSULTAS COMPLEXAS
                 return Ok(new
                 {
                     Message = "Produto criado com sucesso",
@@ -244,7 +222,6 @@ namespace ProjetoEcommerce.Controllers
             }
             catch (Exception ex)
             {
-                // 🔥 LOG DETALHADO
                 Console.WriteLine($"🔴 ERRO NO POST: {ex.Message}");
                 Console.WriteLine($"🔴 STACK TRACE: {ex.StackTrace}");
                 if (ex.InnerException != null)
@@ -256,7 +233,6 @@ namespace ProjetoEcommerce.Controllers
             }
         }
 
-        // GET: api/produtos/5
         [HttpGet("{id}")]
         public async Task<ActionResult<ProdutoFisicoResponseDTO>> GetProdutoFisico(int id)
         {
@@ -301,7 +277,6 @@ namespace ProjetoEcommerce.Controllers
             }
         }
 
-        // DELETE: api/produtos/5/permanente
         [HttpDelete("{id}/permanente")]
         public async Task<ActionResult> DeleteProdutoFisicoPermanente(int id)
         {
@@ -316,7 +291,6 @@ namespace ProjetoEcommerce.Controllers
                     return NotFound("Produto físico não encontrado");
                 }
 
-                // 🔥 POLIMORFISMO - Validar antes de deletar
                 if (!produto.Validar())
                 {
                     return BadRequest("Produto físico contém dados inválidos");
@@ -326,15 +300,13 @@ namespace ProjetoEcommerce.Controllers
 
                 try
                 {
-                    // Deletar estoque relacionado
                     if (produto.Estoque != null)
                     {
                         _context.Estoques.Remove(produto.Estoque);
                     }
 
-                    // Deletar itens do carrinho
                     var itensCarrinho = await _context.CarrinhoItens
-                        .Where(ci => ci.ProdutoFisicoId == id) // 🔥 Agora referencia ProdutoFisico
+                        .Where(ci => ci.ProdutoFisicoId == id)
                         .ToListAsync();
 
                     if (itensCarrinho.Any())
@@ -342,7 +314,6 @@ namespace ProjetoEcommerce.Controllers
                         _context.CarrinhoItens.RemoveRange(itensCarrinho);
                     }
 
-                    // Deletar produto físico
                     _context.ProdutosFisicos.Remove(produto);
                     await _context.SaveChangesAsync();
 
@@ -367,7 +338,6 @@ namespace ProjetoEcommerce.Controllers
             }
         }
 
-        // PUT: api/produtos/5/dimensoes
         [HttpPut("{id}/dimensoes")]
         public async Task<ActionResult> AtualizarDimensoes(int id, [FromBody] DimensoesDTO dimensoes)
         {
@@ -377,7 +347,6 @@ namespace ProjetoEcommerce.Controllers
                 if (produto == null)
                     return NotFound();
 
-                // 🔥 ENCAPSULAMENTO - Usando método específico do ProdutoFisico
                 produto.DefinirDimensoes(dimensoes.Altura, dimensoes.Largura, dimensoes.Profundidade);
 
                 await _context.SaveChangesAsync();
@@ -399,6 +368,4 @@ namespace ProjetoEcommerce.Controllers
             }
         }
     }
-
-    // 🔥 DTOs ESPECÍFICOS para ProdutoFisico
 }

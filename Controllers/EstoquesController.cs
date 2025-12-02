@@ -21,7 +21,6 @@ namespace ProjetoEcommerce.Controllers
         {
             try
             {
-                // 🔥 CONSULTA SEGURA - sem includes complexos
                 var estoques = await _context.Estoques
                     .Select(e => new
                     {
@@ -55,7 +54,6 @@ namespace ProjetoEcommerce.Controllers
         {
             try
             {
-                // 🔥 CONSULTA SEGURA
                 var estoque = await _context.Estoques
                     .Where(e => e.ProdutoFisicoId == produtoFisicoId)
                     .Select(e => new
@@ -91,7 +89,6 @@ namespace ProjetoEcommerce.Controllers
         {
             try
             {
-                // 🔥 VALIDAR TIPO
                 var tiposValidos = new[] { "entrada", "saida", "reserva", "liberar" };
                 if (!tiposValidos.Contains(ajuste.Tipo?.ToLower()))
                 {
@@ -103,7 +100,6 @@ namespace ProjetoEcommerce.Controllers
                     return BadRequest("Quantidade deve ser maior que zero");
                 }
 
-                // 🔥 BUSCAR ESTOQUE (consulta simples)
                 var estoque = await _context.Estoques
                     .FirstOrDefaultAsync(e => e.ProdutoFisicoId == produtoFisicoId);
 
@@ -112,7 +108,6 @@ namespace ProjetoEcommerce.Controllers
                     return NotFound("Estoque do produto não encontrado");
                 }
 
-                // 🔥 APLICAR AJUSTE
                 switch (ajuste.Tipo.ToLower())
                 {
                     case "entrada":
@@ -229,14 +224,12 @@ namespace ProjetoEcommerce.Controllers
         {
             try
             {
-                // Verificar se produto físico existe
                 var produtoFisico = await _context.ProdutosFisicos.FindAsync(estoqueDto.ProdutoFisicoId);
                 if (produtoFisico == null)
                 {
                     return BadRequest("Produto físico não encontrado");
                 }
 
-                // Verificar se já existe estoque para este produto
                 if (await _context.Estoques.AnyAsync(e => e.ProdutoFisicoId == estoqueDto.ProdutoFisicoId))
                 {
                     return BadRequest("Já existe estoque cadastrado para este produto físico");

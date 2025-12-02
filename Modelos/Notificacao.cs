@@ -7,7 +7,7 @@ namespace ProjetoEcommerce.Modelos
         public int Id { get; set; }
 
         [Required]
-        public string Tipo { get; set; } // Email, SMS, Push
+        public string Tipo { get; set; } 
 
         [Required]
         public string Destinatario { get; set; }
@@ -23,7 +23,6 @@ namespace ProjetoEcommerce.Modelos
         public int? UsuarioId { get; set; }
         public int? PedidoId { get; set; }
 
-        // Propriedades de navegação
         public virtual Usuario Usuario { get; set; }
         public virtual Pedido Pedido { get; set; }
 

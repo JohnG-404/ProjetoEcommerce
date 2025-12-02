@@ -15,17 +15,14 @@ namespace ProjetoEcommerce.Modelos
         public DateTime DataCriacao { get; set; }
         public DateTime? DataAtualizacao { get; set; }
 
-        // Propriedades de navegação
         public virtual Loja? Loja { get; set; }
         public virtual Categoria? Categoria { get; set; }
 
-        // Construtor padrão
         public ProdutoBase()
         {
             DataCriacao = DateTime.Now;
         }
 
-        // Construtor com parâmetros
         public ProdutoBase(string nome, string descricao, decimal preco, string sku, int lojaId, int categoriaId)
         {
             Nome = nome ?? throw new ArgumentNullException(nameof(nome));
@@ -48,8 +45,6 @@ namespace ProjetoEcommerce.Modelos
                    LojaId > 0 &&
                    CategoriaId > 0;
         }
-
-        // 🔥 ADICIONAR MÉTODO Atualizar
         public void Atualizar()
         {
             DataAtualizacao = DateTime.Now;

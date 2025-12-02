@@ -5,16 +5,15 @@
         public int Id { get; set; }
         public int LojaId { get; set; }
         public decimal SaldoAtual { get; set; }
-        public string Status { get; set; } = "Aberto"; // "Aberto" ou "Fechado"
+        public string Status { get; set; } = "Aberto"; 
         public DateTime DataAbertura { get; set; }
         public DateTime? DataFechamento { get; set; }
         public decimal SaldoInicial { get; set; }
 
-        // Propriedades de navegação
+       
         public virtual Loja Loja { get; set; }
-        public virtual ICollection<Transacao> Transacoes { get; set; } = new List<Transacao>(); // ADICIONADO
+        public virtual ICollection<Transacao> Transacoes { get; set; } = new List<Transacao>(); 
 
-        // ENCAPSULAMENTO - Construtor
         public Caixa()
         {
             DataAbertura = DateTime.Now;
@@ -27,7 +26,6 @@
             SaldoAtual = saldoInicial;
         }
 
-        // MÉTODOS COM ENCAPSULAMENTO
         public void FecharCaixa()
         {
             if (Status == "Fechado")
@@ -59,7 +57,6 @@
                 SaldoAtual -= transacao.Valor;
         }
 
-        // POLIMORFISMO - Método virtual
         public virtual decimal CalcularSaldoDoDia()
         {
             var transacoesDoDia = Transacoes
@@ -77,7 +74,6 @@
             return totalEntradas - totalSaidas;
         }
 
-        // SOBRECARGA DE MÉTODOS
         public decimal CalcularSaldoPeriodo()
         {
             return CalcularSaldoPeriodo(DataAbertura, DateTime.Now);

@@ -10,10 +10,8 @@
         public int EstoqueMinimo { get; set; }
         public DateTime? UltimoMovimento { get; set; }
 
-        // Propriedade de navegação
         public virtual ProdutoFisico ProdutoFisico { get; set; }
 
-        // MÉTODOS QUE ESTAVAM FALTANDO:
         public void AdicionarEstoque(int quantidade)
         {
             if (quantidade <= 0)
@@ -74,7 +72,6 @@
             return EstoqueReal() <= PontoRepor;
         }
 
-        // MÉTODOS EXISTENTES:
         public bool TemEstoqueSuficiente(int quantidade)
         {
             return (QuantidadeDisponivel - QuantidadeReservada) >= quantidade;

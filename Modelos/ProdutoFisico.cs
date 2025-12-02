@@ -32,7 +32,6 @@ namespace ProjetoEcommerce.Modelos
 
         public override string ObterTipoProduto() => "Físico";
 
-        // 🔥 ADICIONAR MÉTODO DefinirDimensoes
         public void DefinirDimensoes(decimal altura, decimal largura, decimal profundidade)
         {
             if (altura <= 0 || largura <= 0 || profundidade <= 0)

@@ -13,7 +13,6 @@
         public DateTime? DataEnvio { get; set; }
         public DateTime? DataPrevisaoEntrega { get; set; }
 
-        // Propriedades de navegação
         public virtual Pedido Pedido { get; set; }
     }
 }

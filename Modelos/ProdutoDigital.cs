@@ -45,7 +45,7 @@ namespace ProjetoEcommerce.Modelos
         public override decimal CalcularPrecoComImposto()
         {
             var precoBase = base.CalcularPrecoComImposto();
-            return precoBase * 0.98m; // 2% de desconto para digitais
+            return precoBase * 0.98m; 
         }
 
         public bool LinkValido()
@@ -75,7 +75,7 @@ namespace ProjetoEcommerce.Modelos
         {
             DataExpiracao = DateTime.Now.AddDays(dias);
             ChaveLicenca = GerarChaveLicenca();
-            Atualizar(); // 🔥 CORRIGIDO: Método existe agora na classe base
+            Atualizar(); 
         }
 
         public void AumentarLimiteDownloads(int novoLimite)
@@ -84,7 +84,7 @@ namespace ProjetoEcommerce.Modelos
                 throw new ArgumentException("Novo limite deve ser maior que o atual");
 
             LimiteDownloads = novoLimite;
-            Atualizar(); // 🔥 CORRIGIDO: Método existe agora na classe base
+            Atualizar(); 
         }
 
         public string ObterInformacoesDownload()

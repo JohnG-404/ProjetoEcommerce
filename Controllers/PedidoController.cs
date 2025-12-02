@@ -24,7 +24,6 @@ namespace ProjetoEcommerce.Controllers
         {
             try
             {
-                // Buscar carrinho do cliente
                 var carrinho = await _context.Carrinhos
                     .Include(c => c.Itens)
                         .ThenInclude(ci => ci.ProdutoFisico)
@@ -39,7 +38,6 @@ namespace ProjetoEcommerce.Controllers
                     return BadRequest("Carrinho vazio");
                 }
 
-                // Verificar estoque para produtos físicos
                 foreach (var item in carrinho.Itens.Where(i => i.ProdutoFisicoId.HasValue))
                 {
                     var estoque = item.ProdutoFisico?.Estoque;
@@ -49,7 +47,7 @@ namespace ProjetoEcommerce.Controllers
                     }
                 }
 
-                // Verificar endereço de entrega
+               
                 var enderecoEntrega = await _context.Enderecos
                     .FirstOrDefaultAsync(e => e.Id == request.EnderecoEntregaId && e.UsuarioId == request.ClienteId);
 
@@ -58,21 +56,21 @@ namespace ProjetoEcommerce.Controllers
                     return BadRequest("Endereço de entrega não encontrado");
                 }
 
-                // Calcular totais
+                
                 var valorTotal = carrinho.Itens.Sum(i => i.CalcularSubtotal());
                 var valorFrete = CalcularFrete(carrinho.Itens.ToList());
                 var valorTotalComFrete = valorTotal + valorFrete;
 
-                // Criar pedido
+                
                 var pedido = new Pedido
                 {
                     NumeroPedido = GerarNumeroPedido(),
                     ClienteId = request.ClienteId,
-                    LojaId = 1, // Por enquanto, loja padrão
+                    LojaId = 1, 
                     EnderecoEntregaId = request.EnderecoEntregaId,
                     ValorTotal = valorTotal,
                     ValorFrete = valorFrete,
-                    ValorDesconto = 0, // Pode ser calculado com promoções
+                    ValorDesconto = 0, 
                     Status = "Pendente",
                     DataCriacao = DateTime.Now,
                     Observacao = request.Observacao
@@ -81,7 +79,6 @@ namespace ProjetoEcommerce.Controllers
                 _context.Pedidos.Add(pedido);
                 await _context.SaveChangesAsync();
 
-                // Criar itens do pedido e atualizar estoque
                 foreach (var item in carrinho.Itens)
                 {
                     var produto = item.ObterProduto();
@@ -96,7 +93,6 @@ namespace ProjetoEcommerce.Controllers
                     };
                     _context.ItensPedido.Add(itemPedido);
 
-                    // Atualizar estoque apenas para produtos físicos
                     if (item.ProdutoFisicoId.HasValue && item.ProdutoFisico?.Estoque != null)
                     {
                         var estoque = item.ProdutoFisico.Estoque;
@@ -105,7 +101,6 @@ namespace ProjetoEcommerce.Controllers
                     }
                 }
 
-                // Criar pagamento
                 var pagamento = new Pagamento
                 {
                     PedidoId = pedido.Id,
@@ -117,7 +112,6 @@ namespace ProjetoEcommerce.Controllers
                 };
                 _context.Pagamentos.Add(pagamento);
 
-                // Criar envio (apenas para pedidos com produtos físicos)
                 var temProdutosFisicos = carrinho.Itens.Any(i => i.ProdutoFisicoId.HasValue);
                 if (temProdutosFisicos)
                 {
@@ -134,13 +128,11 @@ namespace ProjetoEcommerce.Controllers
                     _context.Envios.Add(envio);
                 }
 
-                // Limpar carrinho
                 _context.CarrinhoItens.RemoveRange(carrinho.Itens);
                 carrinho.AtualizadoEm = DateTime.Now;
 
                 await _context.SaveChangesAsync();
 
-                // Criar transação no caixa
                 var caixa = await _context.Caixas.FirstOrDefaultAsync(c => c.LojaId == pedido.LojaId && c.Status == "Aberto");
                 if (caixa != null)
                 {
@@ -158,13 +150,11 @@ namespace ProjetoEcommerce.Controllers
                     };
                     _context.Transacoes.Add(transacao);
 
-                    // Atualizar saldo do caixa
                     caixa.SaldoAtual += valorTotalComFrete;
                 }
 
                 await _context.SaveChangesAsync();
 
-                // Notificações
                 var emailCliente = new EmailService(carrinho.Cliente?.Email ?? "cliente@email.com",
                     $"Seu pedido {pedido.NumeroPedido} foi criado com sucesso! Valor: R$ {valorTotalComFrete:F2}");
                 _notificacaoService.AdicionarNotificacao(emailCliente);
@@ -175,7 +165,6 @@ namespace ProjetoEcommerce.Controllers
 
                 _notificacaoService.EnviarTodasNotificacoes();
 
-                // Retornar pedido criado
                 return await GetPedido(pedido.Id);
             }
             catch (Exception ex)
@@ -371,7 +360,6 @@ namespace ProjetoEcommerce.Controllers
                 pedido.Status = status;
                 pedido.DataAtualizacao = DateTime.Now;
 
-                // Atualizar status do pagamento se o pedido for confirmado
                 if (status == "Confirmado")
                 {
                     var pagamento = await _context.Pagamentos.FirstOrDefaultAsync(p => p.PedidoId == id);
@@ -381,7 +369,6 @@ namespace ProjetoEcommerce.Controllers
                         pagamento.DataAtualizacao = DateTime.Now;
                     }
 
-                    // Se tiver envio, atualizar status
                     var envio = await _context.Envios.FirstOrDefaultAsync(e => e.PedidoId == id);
                     if (envio != null)
                     {
@@ -389,7 +376,6 @@ namespace ProjetoEcommerce.Controllers
                     }
                 }
 
-                // Se o pedido foi enviado, gerar código de rastreamento
                 if (status == "Enviado")
                 {
                     var envio = await _context.Envios.FirstOrDefaultAsync(e => e.PedidoId == id);
@@ -403,7 +389,6 @@ namespace ProjetoEcommerce.Controllers
 
                 await _context.SaveChangesAsync();
 
-                // Notificar cliente sobre mudança de status
                 var emailService = new EmailService(pedido.Cliente?.Email ?? "cliente@email.com",
                     $"Status do seu pedido {pedido.NumeroPedido} alterado: {statusAnterior} → {status}");
                 _notificacaoService.AdicionarNotificacao(emailService);
@@ -437,7 +422,6 @@ namespace ProjetoEcommerce.Controllers
                 pagamento.Status = request.Status;
                 pagamento.DataAtualizacao = DateTime.Now;
 
-                // Se pagamento aprovado, atualizar status do pedido
                 if (request.Status == "Aprovado")
                 {
                     var pedido = await _context.Pedidos.FindAsync(id);
@@ -478,7 +462,6 @@ namespace ProjetoEcommerce.Controllers
                     return BadRequest("Não é possível cancelar um pedido já entregue");
                 }
 
-                // Restaurar estoque dos produtos físicos
                 foreach (var item in pedido.Itens.Where(i => i.ProdutoFisicoId.HasValue))
                 {
                     var estoque = await _context.Estoques.FirstOrDefaultAsync(e => e.ProdutoFisicoId == item.ProdutoFisicoId);
@@ -489,11 +472,9 @@ namespace ProjetoEcommerce.Controllers
                     }
                 }
 
-                // Atualizar status
                 pedido.Status = "Cancelado";
                 pedido.DataAtualizacao = DateTime.Now;
 
-                // Atualizar pagamento
                 var pagamento = await _context.Pagamentos.FirstOrDefaultAsync(p => p.PedidoId == id);
                 if (pagamento != null)
                 {
@@ -503,7 +484,6 @@ namespace ProjetoEcommerce.Controllers
 
                 await _context.SaveChangesAsync();
 
-                // Notificar cliente
                 var emailService = new EmailService(pedido.Cliente?.Email ?? "cliente@email.com",
                     $"Seu pedido {pedido.NumeroPedido} foi cancelado. Valor estornado: R$ {pedido.ValorTotal + pedido.ValorFrete:F2}");
                 _notificacaoService.AdicionarNotificacao(emailService);
@@ -517,7 +497,6 @@ namespace ProjetoEcommerce.Controllers
             }
         }
 
-        // 🔥 MÉTODOS PRIVADOS AUXILIARES
 
         private string GerarNumeroPedido()
         {
@@ -539,12 +518,11 @@ namespace ProjetoEcommerce.Controllers
 
         private decimal CalcularFrete(List<CarrinhoItem> itens)
         {
-            // Simulação de cálculo de frete
             var temProdutosFisicos = itens.Any(i => i.ProdutoFisicoId.HasValue);
 
             if (!temProdutosFisicos)
             {
-                return 0; // Produtos digitais não têm frete
+                return 0; 
             }
 
             var pesoTotal = itens
@@ -555,7 +533,7 @@ namespace ProjetoEcommerce.Controllers
             if (pesoTotal <= 1) return 15.00m;
             if (pesoTotal <= 5) return 25.00m;
             if (pesoTotal <= 10) return 35.00m;
-            return 50.00m; // acima de 10kg
+            return 50.00m; 
         }
     }
 

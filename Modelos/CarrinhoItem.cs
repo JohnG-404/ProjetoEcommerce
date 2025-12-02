@@ -10,12 +10,10 @@
         public decimal PrecoUnitario { get; set; }
         public DateTime DataAdicao { get; set; }
 
-        // Propriedades de navegação
         public virtual Carrinho Carrinho { get; set; }
         public virtual ProdutoFisico ProdutoFisico { get; set; }
         public virtual ProdutoDigital ProdutoDigital { get; set; }
 
-        // 🔥 CONSTRUTORES CORRETOS
         public CarrinhoItem()
         {
             DataAdicao = DateTime.Now;
@@ -31,7 +29,6 @@
             PrecoUnitario = precoUnitario;
         }
 
-        // 🔥 MÉTODO PARA OBTER QUALQUER TIPO DE PRODUTO
         public ProdutoBase ObterProduto()
         {
             return (ProdutoBase)ProdutoFisico ?? ProdutoDigital;

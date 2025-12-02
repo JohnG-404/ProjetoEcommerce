@@ -33,7 +33,6 @@ namespace ProjetoEcommerce.Modelos
             Atualizar();
         }
 
-        // Método abstrato para validação - POLIMORFISMO
         public abstract bool Validar();
     }
 }

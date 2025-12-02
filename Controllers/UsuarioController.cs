@@ -30,7 +30,7 @@ namespace ProjetoEcommerce.Controllers
                 {
                     Nome = usuarioDto.Nome,
                     Email = usuarioDto.Email,
-                    Senha = usuarioDto.Senha, // Em produção, hash da senha
+                    Senha = usuarioDto.Senha, 
                     Telefone = usuarioDto.Telefone,
                     DataCriacao = DateTime.Now,
                     Role = "Cliente",

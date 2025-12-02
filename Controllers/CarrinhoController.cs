@@ -23,9 +23,9 @@ namespace ProjetoEcommerce.Controllers
             {
                 var carrinho = await _context.Carrinhos
                     .Include(c => c.Itens)
-                        .ThenInclude(ci => ci.ProdutoFisico) // 🔥 ATUALIZADO
+                        .ThenInclude(ci => ci.ProdutoFisico) 
                     .Include(c => c.Itens)
-                        .ThenInclude(ci => ci.ProdutoDigital) // 🔥 ATUALIZADO
+                        .ThenInclude(ci => ci.ProdutoDigital) 
                     .Include(c => c.Cliente)
                     .FirstOrDefaultAsync(c => c.ClienteId == clienteId);
 
@@ -46,10 +46,9 @@ namespace ProjetoEcommerce.Controllers
                     Itens = carrinho.Itens.Select(ci => new CarrinhoItemResponseDTO
                     {
                         Id = ci.Id,
-                        // 🔥 ATUALIZADO - Verificar tipo de produto
                         ProdutoId = ci.ProdutoFisicoId ?? ci.ProdutoDigitalId ?? 0,
-                        ProdutoNome = ci.ObterProduto()?.Nome, // 🔥 USAR MÉTODO
-                        TipoProduto = ci.ObterTipoProduto(), // 🔥 ADICIONADO
+                        ProdutoNome = ci.ObterProduto()?.Nome, 
+                        TipoProduto = ci.ObterTipoProduto(), 
                         Quantidade = ci.Quantidade,
                         PrecoUnitario = ci.PrecoUnitario,
                         Subtotal = ci.CalcularSubtotal()
@@ -80,7 +79,6 @@ namespace ProjetoEcommerce.Controllers
                     await _context.SaveChangesAsync();
                 }
 
-                // 🔥 ATUALIZADO - Verificar se é produto físico ou digital
                 ProdutoBase produto = null;
                 decimal preco = 0;
 
@@ -103,7 +101,6 @@ namespace ProjetoEcommerce.Controllers
 
                 preco = produto.Preco;
 
-                // Verificar estoque apenas para produtos físicos
                 if (produto is ProdutoFisico produtoFisico)
                 {
                     if (produtoFisico.Estoque == null || produtoFisico.Estoque.QuantidadeDisponivel < request.Quantidade)
@@ -112,7 +109,6 @@ namespace ProjetoEcommerce.Controllers
                     }
                 }
 
-                // 🔥 ATUALIZADO - Buscar item existente considerando tipo
                 CarrinhoItem itemExistente = null;
 
                 if (request.TipoProduto == "Fisico")
@@ -132,7 +128,6 @@ namespace ProjetoEcommerce.Controllers
                 }
                 else
                 {
-                    // 🔥 ATUALIZADO - Criar item com tipo correto
                     var novoItem = new CarrinhoItem
                     {
                         CarrinhoId = carrinho.Id,
@@ -198,7 +193,6 @@ namespace ProjetoEcommerce.Controllers
                     return NotFound("Item não encontrado");
                 }
 
-                // Verificar estoque apenas para produtos físicos
                 if (item.ProdutoFisico != null && item.ProdutoFisico.Estoque?.QuantidadeDisponivel < quantidade)
                 {
                     return BadRequest("Quantidade indisponível em estoque");

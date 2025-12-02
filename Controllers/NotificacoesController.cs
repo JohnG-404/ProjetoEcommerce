@@ -25,7 +25,6 @@ namespace ProjetoEcommerce.Controllers
         {
             try
             {
-                // POLIMORFISMO - Testando diferentes tipos de notificação
                 var emailService = new EmailService("teste@email.com", "Esta é uma notificação de teste por email");
                 var smsService = new SMSService("11999999999", "Esta é uma notificação de teste por SMS");
 
@@ -70,7 +69,7 @@ namespace ProjetoEcommerce.Controllers
             try
             {
                 var smsService = new SMSService(request.Destinatario, request.Mensagem);
-                var resultado = _notificacaoService.EnviarNotificacao(smsService, 3); // SOBRECARGA com tentativas
+                var resultado = _notificacaoService.EnviarNotificacao(smsService, 3); 
 
                 return Ok(new { Message = resultado });
             }

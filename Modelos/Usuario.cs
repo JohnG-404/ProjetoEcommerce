@@ -11,12 +11,9 @@
         public DateTime DataCriacao { get; set; }
         public bool Ativo { get; set; } = true;
 
-        // Propriedades de navegação
         public virtual Endereco Endereco { get; set; }
         public virtual ICollection<Carrinho> Carrinhos { get; set; } = new List<Carrinho>();
         public virtual ICollection<Pedido> Pedidos { get; set; } = new List<Pedido>();
 
-        // REMOVIDO: Avaliacoes
-        // public virtual ICollection<Avaliacao> Avaliacoes { get; set; } = new List<Avaliacao>();
     }
 }

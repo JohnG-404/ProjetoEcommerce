@@ -25,7 +25,7 @@ namespace ProjetoEcommerce.Controllers
             {
                 var debugInfo = new List<object>();
 
-                // Testar consulta básica sem Includes
+
                 var produtosBasico = await _context.ProdutosDigitais
                     .Take(5)
                     .ToListAsync();
@@ -56,16 +56,13 @@ namespace ProjetoEcommerce.Controllers
                 return StatusCode(500, $"Debug Error: {ex.Message}\n{ex.StackTrace}");
             }
         }
-        // GET: api/produtos-digitais
         [HttpGet]
         public async Task<ActionResult<IEnumerable<object>>> GetProdutosDigitais()
         {
             try
             {
-                // 🔥 USAR O MESMO CÓDIGO SEGURO DO DEBUG
                 var debugInfo = new List<object>();
 
-                // Testar consulta básica sem Includes
                 var produtosBasico = await _context.ProdutosDigitais
                     .Take(50)
                     .ToListAsync();
@@ -103,7 +100,6 @@ namespace ProjetoEcommerce.Controllers
         {
             try
             {
-                // 🔥 VALIDAÇÃO BÁSICA
                 if (string.IsNullOrWhiteSpace(request.Nome))
                     return BadRequest("Nome é obrigatório");
 
@@ -119,7 +115,6 @@ namespace ProjetoEcommerce.Controllers
                 if (request.CategoriaId <= 0)
                     return BadRequest("CategoriaId inválido");
 
-                // 🔥 VERIFICAÇÕES SIMPLES
                 var lojaExiste = await _context.Lojas.AnyAsync(l => l.Id == request.LojaId);
                 if (!lojaExiste)
                     return BadRequest("Loja não encontrada");
@@ -132,7 +127,6 @@ namespace ProjetoEcommerce.Controllers
                 if (skuExistente)
                     return BadRequest("SKU já cadastrado");
 
-                // 🔥 CRIAR PRODUTO DIGITAL DE FORMA SEGURA
                 var produto = new ProdutoDigital
                 {
                     Nome = request.Nome.Trim(),
@@ -148,11 +142,9 @@ namespace ProjetoEcommerce.Controllers
                     DataExpiracao = request.DataExpiracao
                 };
 
-                // 🔥 SALVAR O PRODUTO
                 _context.ProdutosDigitais.Add(produto);
                 await _context.SaveChangesAsync();
 
-                // 🔥 RESPOSTA SIMPLES
                 return Ok(new
                 {
                     Message = "Produto digital criado com sucesso",
@@ -184,17 +176,17 @@ namespace ProjetoEcommerce.Controllers
                     {
                         Id = pd.Id,
                         Nome = pd.Nome,
-                        Descricao = pd.Descricao ?? string.Empty, // 🔥 CORREÇÃO: tratar NULL
+                        Descricao = pd.Descricao ?? string.Empty, 
                         Preco = pd.Preco,
                         PrecoComImposto = pd.CalcularPrecoComImposto(),
                         SKU = pd.SKU,
-                        Categoria = pd.Categoria != null ? pd.Categoria.Nome : "Sem categoria", // 🔥 CORREÇÃO
-                        Loja = pd.Loja != null ? pd.Loja.Nome : "Sem loja", // 🔥 CORREÇÃO
-                        UrlDownload = pd.UrlDownload ?? string.Empty, // 🔥 CORREÇÃO
-                        TamanhoArquivoMB = pd.TamanhoArquivoMB ?? 0, // 🔥 CORREÇÃO
-                        FormatoArquivo = pd.FormatoArquivo ?? string.Empty, // 🔥 CORREÇÃO
+                        Categoria = pd.Categoria != null ? pd.Categoria.Nome : "Sem categoria", 
+                        Loja = pd.Loja != null ? pd.Loja.Nome : "Sem loja", 
+                        UrlDownload = pd.UrlDownload ?? string.Empty, 
+                        TamanhoArquivoMB = pd.TamanhoArquivoMB ?? 0, 
+                        FormatoArquivo = pd.FormatoArquivo ?? string.Empty, 
                         LimiteDownloads = pd.LimiteDownloads,
-                        ChaveLicenca = pd.ChaveLicenca ?? string.Empty, // 🔥 CORREÇÃO
+                        ChaveLicenca = pd.ChaveLicenca ?? string.Empty, 
                         DataExpiracao = pd.DataExpiracao,
                         DataCriacao = pd.DataCriacao,
                         LinkValido = pd.LinkValido(),
@@ -215,7 +207,6 @@ namespace ProjetoEcommerce.Controllers
             }
         }
 
-        // POST: api/produtos-digitais/5/renovar-licenca
         [HttpPost("{id}/renovar-licenca")]
         public async Task<ActionResult> RenovarLicenca(int id, [FromBody] int dias = 365)
         {

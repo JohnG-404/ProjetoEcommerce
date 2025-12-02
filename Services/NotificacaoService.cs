@@ -11,13 +11,11 @@ namespace ProjetoEcommerce.Services
             _notificacoes = new List<INotificacao>();
         }
 
-        // POLIMORFISMO - Aceita qualquer objeto que implemente INotificacao
         public void AdicionarNotificacao(INotificacao notificacao)
         {
             _notificacoes.Add(notificacao);
         }
 
-        // SOBRECARGA - Adiciona notificação criando os serviços
         public void AdicionarNotificacaoEmail(string destinatario, string mensagem)
         {
             var email = new EmailService(destinatario, mensagem);
@@ -30,7 +28,6 @@ namespace ProjetoEcommerce.Services
             _notificacoes.Add(sms);
         }
 
-        // POLIMORFISMO - Processa diferentes tipos de notificação
         public List<string> EnviarTodasNotificacoes()
         {
             var resultados = new List<string>();
@@ -39,7 +36,6 @@ namespace ProjetoEcommerce.Services
             {
                 try
                 {
-                    // POLIMORFISMO - Chama o método Enviar() específico de cada tipo
                     string resultado = notificacao.Enviar();
                     resultados.Add(resultado);
                 }
@@ -53,7 +49,6 @@ namespace ProjetoEcommerce.Services
             return resultados;
         }
 
-        // SOBRECARGA DE MÉTODO
         public string EnviarNotificacao(INotificacao notificacao)
         {
             return notificacao.Enviar();

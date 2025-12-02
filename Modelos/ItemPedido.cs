@@ -11,12 +11,10 @@
         public decimal Desconto { get; set; }
         public string NomeProduto { get; set; }
 
-        // 🔥 PROPRIEDADES DE NAVEGAÇÃO ADICIONADAS
         public virtual Pedido Pedido { get; set; }
         public virtual ProdutoFisico ProdutoFisico { get; set; }
         public virtual ProdutoDigital ProdutoDigital { get; set; }
 
-        // 🔥 MÉTODO PARA OBTER QUALQUER TIPO DE PRODUTO
         public ProdutoBase ObterProduto()
         {
             return (ProdutoBase)ProdutoFisico ?? ProdutoDigital;

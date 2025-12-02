@@ -10,7 +10,6 @@ public class AppDbContext : DbContext
     public DbSet<ProdutoFisico> ProdutosFisicos { get; set; }
     public DbSet<ProdutoDigital> ProdutosDigitais { get; set; }
 
-    // DBSETS EXISTENTES
     public DbSet<Usuario> Usuarios { get; set; }
     public DbSet<Loja> Lojas { get; set; }
     public DbSet<Endereco> Enderecos { get; set; }
@@ -27,11 +26,9 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // 🔥 CONFIGURAÇÃO CORRETA DE HERANÇA TPT
         modelBuilder.Entity<ProdutoBase>()
             .UseTptMappingStrategy();
 
-        // 🔥 CONFIGURAÇÕES DE CHAVES ÚNICAS
         modelBuilder.Entity<Usuario>()
             .HasIndex(u => u.Email)
             .IsUnique();
@@ -44,7 +41,6 @@ public class AppDbContext : DbContext
             .HasIndex(p => p.SKU)
             .IsUnique();
 
-        // 🔥 RELACIONAMENTOS COM HERANÇA
 
         // ProdutoFisico -> Estoque (1:1)
         modelBuilder.Entity<ProdutoFisico>()
@@ -67,7 +63,6 @@ public class AppDbContext : DbContext
             .HasForeignKey(p => p.CategoriaId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // 🔥 RELACIONAMENTOS DE CARRINHO ITEM (com herança)
         modelBuilder.Entity<CarrinhoItem>()
             .HasOne(ci => ci.ProdutoFisico)
             .WithMany()
@@ -82,12 +77,10 @@ public class AppDbContext : DbContext
             .OnDelete(DeleteBehavior.Cascade)
             .IsRequired(false);
 
-        // Validação: Um item deve referenciar OU produto físico OU digital
         modelBuilder.Entity<CarrinhoItem>()
             .HasCheckConstraint("CK_CarrinhoItem_TipoProduto",
                 "([ProdutoFisicoId] IS NOT NULL AND [ProdutoDigitalId] IS NULL) OR ([ProdutoFisicoId] IS NULL AND [ProdutoDigitalId] IS NOT NULL)");
 
-        // 🔥 RELACIONAMENTOS DE PEDIDO (com herança)
         modelBuilder.Entity<ItemPedido>()
             .HasOne(ip => ip.ProdutoFisico)
             .WithMany()
@@ -102,12 +95,10 @@ public class AppDbContext : DbContext
             .OnDelete(DeleteBehavior.Restrict)
             .IsRequired(false);
 
-        // Check constraint para ItensPedido
         modelBuilder.Entity<ItemPedido>()
             .HasCheckConstraint("CK_ItensPedido_TipoProduto",
                 "([ProdutoFisicoId] IS NOT NULL AND [ProdutoDigitalId] IS NULL) OR ([ProdutoFisicoId] IS NULL AND [ProdutoDigitalId] IS NOT NULL)");
 
-        // 🔥 RELACIONAMENTOS EXISTENTES
 
         // Loja -> Endereco (1:1)
         modelBuilder.Entity<Loja>()
@@ -192,7 +183,6 @@ public class AppDbContext : DbContext
             .HasForeignKey(t => t.CaixaId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // 🔥 CONFIGURAÇÕES DE PROPRIEDADES
 
         // Configurar decimal para precisão
         modelBuilder.Entity<ProdutoBase>()
@@ -271,7 +261,6 @@ public class AppDbContext : DbContext
             .Property(t => t.Valor)
             .HasPrecision(15, 2);
 
-        // 🔥 CONFIGURAÇÕES DE VALORES PADRÃO
 
         modelBuilder.Entity<ProdutoBase>()
             .Property(p => p.Ativo)
@@ -328,8 +317,6 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Transacao>()
             .Property(t => t.Data)
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-        // 🔥 ÍNDICES PARA MELHOR PERFORMANCE
 
         modelBuilder.Entity<ProdutoBase>()
             .HasIndex(p => p.Ativo);
@@ -397,7 +384,6 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Transacao>()
             .HasIndex(t => t.CaixaId);
 
-        // 🔥 CONFIGURAÇÃO DE DELETE BEHAVIOR GLOBAL
         foreach (var relationship in modelBuilder.Model.GetEntityTypes()
             .SelectMany(e => e.GetForeignKeys())
             .Where(fk => !fk.IsOwnership &&

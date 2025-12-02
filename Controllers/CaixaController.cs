@@ -21,7 +21,7 @@ namespace ProjetoEcommerce.Controllers
         {
             try
             {
-                // 🔥 CONSULTA SEGURA - sem includes complexos
+               
                 var caixa = await _context.Caixas
                     .Where(c => c.LojaId == lojaId)
                     .Select(c => new
@@ -57,7 +57,7 @@ namespace ProjetoEcommerce.Controllers
                     })
                     .ToListAsync();
 
-                // 🔘 CONSULTA SEGURA para nome da loja
+                
                 var loja = await _context.Lojas
                     .Where(l => l.Id == lojaId)
                     .Select(l => new { l.Nome })
@@ -80,13 +80,13 @@ namespace ProjetoEcommerce.Controllers
             }
         }
 
-        // 🔥 MÉTODO PARA ABRIR CAIXA
+       
         [HttpPost("loja/{lojaId}/abrir")]
         public async Task<ActionResult<object>> AbrirCaixa(int lojaId, [FromBody] decimal saldoInicial = 0)
         {
             try
             {
-                // Verificar se já existe caixa aberto
+                
                 var caixaExistente = await _context.Caixas
                     .FirstOrDefaultAsync(c => c.LojaId == lojaId && c.Status == "Aberto");
 
@@ -120,7 +120,7 @@ namespace ProjetoEcommerce.Controllers
             }
         }
 
-        // 🔥 MÉTODO PARA FECHAR CAIXA
+        
         [HttpPost("loja/{lojaId}/fechar")]
         public async Task<ActionResult<object>> FecharCaixa(int lojaId)
         {
@@ -137,7 +137,7 @@ namespace ProjetoEcommerce.Controllers
                 caixa.FecharCaixa();
                 await _context.SaveChangesAsync();
 
-                // 🔘 CONSULTA SEGURA para transações do dia
+                
                 var transacoesDia = await _context.Transacoes
                     .Where(t => t.CaixaId == caixa.Id && t.Data.Date == DateTime.Today)
                     .Select(t => new
@@ -176,7 +176,7 @@ namespace ProjetoEcommerce.Controllers
             }
         }
 
-        // 🔥 MÉTODO PARA ADICIONAR TRANSAÇÃO
+
         [HttpPost("loja/{lojaId}/transacao")]
         public async Task<ActionResult<object>> AdicionarTransacao(int lojaId, [FromBody] TransacaoRequestDTO request)
         {
@@ -202,7 +202,6 @@ namespace ProjetoEcommerce.Controllers
                     Observacao = request.Observacao
                 };
 
-                // Atualizar saldo do caixa
                 if (request.Tipo == "Entrada")
                     caixa.SaldoAtual += request.Valor;
                 else if (request.Tipo == "Saida")
